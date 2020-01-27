@@ -1,0 +1,130 @@
+    {
+        "schema-version": "0.1", 
+        "mandatoryRules": {
+            "reservation": {
+                "customer": [],
+                "customer": [
+                ],
+                "id[0].foo[1].zoo": [
+                    {
+                        "permissions": {
+                            "type": "ANY",
+                            "values": [
+                                "aaa"
+                            ]
+                        }
+                    },
+                    {
+                        "permissions": {
+                            "type": "ANY",
+                            "values": [
+                                "bbb"
+                            ]
+                        },
+                        "contraintsTopGroup": {
+                            "operator": "AND",
+                            "constraintsSubGroups": [
+                                {
+                                    "operator": "AND",
+                                    "constraints": [
+                                        {
+                                            "property": "someString",
+                                            "type": "SIZE",
+                                            "min": 1,
+                                            "max": 10
+                                        },
+                                        {
+                                            "property": "articleArray",
+                                            "type": "SIZE",
+                                            "min": 2
+                                        },
+                                        {
+                                            "property": "someMap",
+                                            "type": "SIZE",
+                                            "max": 2
+                                        },
+                                        {
+                                            "property": "someString",
+                                            "type": "REGEX_ANY",
+                                            "values": [
+                                                "^o+$"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "contraintsTopGroup": {
+                            "operator": "AND",
+                            "constraintsSubGroups": [
+                                {
+                                    "operator": "OR",
+                                    "constraints": [
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_NONE",
+                                            "values": [
+                                                1,
+                                                2,
+                                            ]
+                                        },
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_NONE",
+                                            "values": [
+                                                "4",
+                                            ]
+                                        },
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_NULL"
+                                        },
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_NOT_NULL"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "operator": "AND",
+                                    "constraints": [
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_ANY_REF",
+                                            "values": [
+                                                "foo[1].zoo"
+                                            ]
+                                        },
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_ANY",
+                                            "values": [
+                                                true
+                                            ]
+                                        },
+                                        {
+                                            "property": "id",
+                                            "type": "EQUALS_ANY",
+                                            "values": [
+                                                "2016-02-29",
+                                                "2019-02-28T08:15:59Z"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "immutableRules": {
+            "reservation": {}
+              
+        },
+        "contentRules": {
+            "reservation": {}
+        }
+    }
