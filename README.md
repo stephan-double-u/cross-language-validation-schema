@@ -144,7 +144,7 @@ Validation rules regarding the properties of an entity type are defined by a key
 ### Property related validation rules
 Validation rules for a single property of an entity type are defined by a key-value pair.
 
-The name of the key is determined by the type of the property
+The name of the key is determined by the name of the property
 - For a _simple property_ it is its name, e.g.
   - "responsibleUser"
 -  For a _nested property_ the name is build by concatenating the property names of the access path by using "." separators, e.g.
