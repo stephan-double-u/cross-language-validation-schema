@@ -1,4 +1,4 @@
-# Cross Language Validation Schema
+# Cross Language Validation Schema - V0.1
 JSON schema that specifies validation rules in a language independant manner to enable cross language validation.
 
 ## Table of Contents
