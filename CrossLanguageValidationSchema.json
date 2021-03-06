@@ -1,147 +1,140 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema#",
   "$id": "http://de.swa.cross-language-validation.json#",
   "title" : "Cross Language Validation Schema",
-    
+
+  "type": "object",
+  "properties": {
+    "schema-version": { "type": "string" , "enum": ["0.2"]},
+    "mandatoryRules": { "$ref": "#/definitions/typeRules" },
+    "immutableRules": { "$ref": "#/definitions/typeRules" },
+    "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
+    "updateRules":    { "$ref": "#/definitions/typeRulesContent" }
+  },
+  "required": ["schema-version", "mandatoryRules", "immutableRules", "contentRules", "updateRules"],
+  "additionalProperties": false,
+
   "definitions": {
-    "equalsStringConstraint": {
+    "typeRules": {
+      "type": "object",
+      "$comment": "jsonschemavalidator.net supports unicode character classes! Is this pattern not restrictive enough?",
+      "propertyNames": { "pattern": "^[\\p{L}_$][\\p{L}\\p{N}_$]*$" },
+      "additionalProperties": { "$ref": "#/definitions/propertyRules" }
+    },
+    "typeRulesContent": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[\\p{L}_$][\\p{L}\\p{N}_$]*$" },
+      "additionalProperties": { "$ref": "#/definitions/propertyRulesContent" }
+    },
+    "propertyRules": {
+      "type": "object",
+      "propertyNames": {
+        "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
+        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/conditions" }
+      }
+    },
+    "propertyRulesContent": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/conditionsContent" },
+        "minItems": 1
+      }
+    },
+    "conditions": {
       "type": "object",
       "properties": {
-        "property": { "type": "string" },
-        "type": { 
-          "type": "string" , 
-          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
-        },
+        "permissions":        { "$ref": "#/definitions/permissions" },
+        "conditionsTopGroup": { "$ref": "#/definitions/conditionsTopGroup" },
+        "conditionsGroup":    { "$ref": "#/definitions/conditionsGroup" },
+        "condition":          { "$ref": "#/definitions/condition" }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": [ "permissions" ] },
+        {
+          "oneOf": [
+            {"required": [ "conditionsTopGroup" ] },
+            {"required": [ "conditionsGroup" ] },
+            {"required": [ "condition" ] }
+          ]
+        }
+      ]
+    },
+    "conditionsContent": {
+      "type": "object",
+      "properties": {
+        "constraint":         { "$ref": "#/definitions/constraint" },
+        "permissions":        { "$ref": "#/definitions/permissions" },
+        "conditionsTopGroup": { "$ref": "#/definitions/conditionsTopGroup" },
+        "conditionsGroup":    { "$ref": "#/definitions/conditionsGroup" },
+        "condition":          { "$ref": "#/definitions/condition" }
+      },
+      "required": ["constraint"],
+      "additionalProperties": false,
+      "oneOf": [
+        {"required": [ "constraint, permissions, conditionsTopGroup" ] },
+        {"required": [ "constraint, permissions, conditionsGroup" ] },
+        {"required": [ "constraint, permissions, condition" ] },
+        {"required": [ "constraint, conditionsTopGroup" ] },
+        {"required": [ "constraint, conditionsGroup" ] },
+        {"required": [ "constraint, condition" ] },
+        {"required": [ "constraint" ] }
+      ]
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["ANY"]},
         "values" : {
           "type": "array",
-          "items": { 
-            "type" : "string", 
-            "not": {
-              "anyOf" : [
-                { "format": "date" },
-                { "format": "date-time" }
-              ]
-            }
-          } 
+          "items": { "type": "string" }
         }
       },
-      "required": ["property", "type", "values"],
+      "required": [ "type", "values" ],
       "additionalProperties": false
     },
-    "equalsDateConstraint": {
+    "conditionsTopGroup": {
       "type": "object",
       "properties": {
-        "property": { "type": "string" },
-        "type": {
-          "type": "string" , 
-          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
-        },
-        "values" : { 
-          "type": "array", 
-          "items": { 
-            "type": "string" , 
-            "anyOf": [ 
-              { "format": "date" },
-              { "format": "date-time" }
-            ]
-          }
-        }
-      },
-      "required": ["property", "type", "values"],
-      "additionalProperties": false
-    },
-    "equalsNumberConstraint": {
-      "type": "object",
-      "properties": {
-        "property": { "type": "string" },
-        "type": {
-          "type": "string" , 
-          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
-        },
-        "values" : { 
-          "type": "array", 
-          "items": { "type" : "number" }
-        }
-      },
-      "required": ["property", "type", "values"],
-      "additionalProperties": false
-    },
-    "equalsBooleanConstraint": {
-      "type": "object",
-      "properties": {
-        "property": { "type": "string" },
-        "type": {
-          "type": "string" , 
-          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
-        },
-        "values" : { 
-          "type": "array", 
-          "items": { "type" : "boolean" }
-        }
-      },
-      "required": ["property", "type", "values"],
-      "additionalProperties": false
-    },
-    "equalsNullConstraint": {
-      "type": "object",
-      "properties": {
-        "property": { "type": "string" },
-        "type": {
-          "type": "string" , 
-          "enum": ["EQUALS_NULL", "EQUALS_NOT_NULL"]
-        }
-      },
-      "required": ["property", "type"],
-      "additionalProperties": false
-    },
-    "equalsRefConstraint": {
-      "type": "object",
-      "properties": {
-        "property": { "type": "string" },
-        "type": { 
-          "type": "string" , 
-          "enum": ["EQUALS_ANY_REF"]
-        },
-        "values" : {
+        "operator": { "type": "string" , "enum": ["AND", "OR"] },
+        "conditionsGroups" : {
           "type": "array",
-          "items": {
-            "type" : "string",
-       	    "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
-            "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9][]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9][]])?$" 
-          } 
+          "items": { "$ref": "#/definitions/conditionsGroup" }
         }
       },
-      "required": ["property", "type", "values"],
+      "required": ["operator", "conditionsGroups"],
       "additionalProperties": false
     },
-    "regexConstraint": {
+    "conditionsGroup": {
       "type": "object",
-      "properties": { 
-        "property": { "type": "string" },
-        "type": { "type": "string" , "enum": ["REGEX_ANY"] },
-        "values" : {
+      "properties": {
+        "operator": { "type": "string" , "enum": ["AND", "OR"]},
+        "conditions" : {
           "type": "array",
-          "items": { "type" : "string", "format": "regex" } }
+          "items": { "$ref": "#/definitions/condition" }
+        }
       },
-      "required": ["property", "type", "values"],
+      "required": ["operator", "conditions"],
       "additionalProperties": false
     },
-    "sizeConstraint": {
+    "condition": {
       "type": "object",
-      "properties": { 
+      "properties": {
         "property": { "type": "string" },
-        "type": { "type": "string" , "enum": ["SIZE"] },
-        "min" : { "type": "number", "minimum": 0 },
-        "max" : { "type": "number", "minimum": 0 },
+        "constraint" : { "$ref": "#/definitions/constraint" }
       },
-      "required": ["property", "type"],
-      "anyOf": [ 
-        { "required": ["min"] },
-        { "required": ["max"] }
-      ],
+      "required": ["property", "constraint"],
       "additionalProperties": false
     },
-    "contentConstraint": {
+    "constraint": {
       "type": "object",
       "oneOf": [
         { "$ref": "#/definitions/equalsStringConstraint" },
@@ -150,93 +143,164 @@
         { "$ref": "#/definitions/equalsBooleanConstraint" },
         { "$ref": "#/definitions/equalsNullConstraint" },
         { "$ref": "#/definitions/equalsRefConstraint" },
+        { "$ref": "#/definitions/sizeConstraint" },
+        { "$ref": "#/definitions/rangeConstraint" },
         { "$ref": "#/definitions/regexConstraint" },
-        { "$ref": "#/definitions/sizeConstraint" }
+        { "$ref": "#/definitions/datesConstraint" }
       ]
     },
-    "singleContraint": {
+    "equalsStringConstraint": {
       "type": "object",
-      "properties": { 
-        "constraint" : { "$ref": "#/definitions/contentConstraint" }
-      },
-      "required": ["operator", "constraints"],
-      "additionalProperties": false
-    },
-    "contraintsSubGroup": {
-      "type": "object",
-      "properties": { 
-        "operator": { "type": "string" , "enum": ["AND", "OR"]},
-        "constraints" : { 
-          "type": "array", 
-          "items": {"$ref": "#/definitions/contentConstraint" } 
-        }
-      },
-      "required": ["operator", "constraints"],
-      "additionalProperties": false
-    },
-    "contraintsTopGroup": {
-      "type": "object",
-      "properties": { 
-        "operator": { "type": "string" , "enum": ["AND", "OR"]},
-        "constraintsSubGroups" : { 
-          "type": "array", 
-          "items": { "$ref": "#/definitions/contraintsSubGroup" } 
-        }
-      },
-      "required": ["operator", "constraintsSubGroups"],
-      "additionalProperties": false
-    },
-    "permissions": {
-      "type": "object",
-      "properties": { 
-        "type": { "type": "string" , "enum": ["ANY"]},
-        "values" : { 
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
+        },
+        "values" : {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type" : "string",
+            "not": {
+              "anyOf" : [
+                { "format": "date" },
+                { "format": "date-time" }
+              ]
+            }
+          }
         }
       },
-      "required": [ "type", "values" ],
-      "additionalPropsingleContrainterties": false
+      "required": ["type", "values"],
+      "additionalProperties": false
     },
-    "condition": {
+    "equalsDateConstraint": {
       "type": "object",
-      "properties": { 
-        "permissions": { "$ref": "#/definitions/permissions" },
-        "contraintsTopGroup" : { "$ref": "#/definitions/contraintsTopGroup" }
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
+        },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "string" ,
+            "anyOf": [
+              { "format": "date" },
+              { "format": "date-time" }
+            ]
+          }
+        }
       },
-      "additionalProperties": false,
-        "anyOf": [
-          { "required": [ "permissions" ] },
-          { "required": [ "contraintsTopGroup" ] }
-      ]
+      "required": ["type", "values"],
+      "additionalProperties": false
     },
-    "propertyRules": {
+    "equalsNumberConstraint": {
       "type": "object",
-      "propertyNames": {
-        "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
-        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9][]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9][]])?$" 
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
+        },
+        "values" : {
+          "type": "array",
+          "items": { "type" : "number" }
+        }
       },
-      "additionalProperties": { 
-        "type": "array", 
-        "items": { "$ref": "#/definitions/condition" } 
-      }
+      "required": ["type", "values"],
+      "additionalProperties": false
     },
-    "typeRules": {
+    "equalsBooleanConstraint": {
       "type": "object",
-      "$comment": "jsonschemavalidator.net supports unicode character classes! Is this pattern not restrictive enough?",
-      "propertyNames": { "pattern": "^[\\p{L}_$][\\p{L}\\p{N}_$]*$" },
-      "additionalProperties": { "$ref": "#/definitions/propertyRules" }
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_ANY", "EQUALS_NONE"]
+        },
+        "values" : {
+          "type": "array",
+          "items": { "type" : "boolean" }
+        }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "equalsNullConstraint": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_NULL", "EQUALS_NOT_NULL"]
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "equalsRefConstraint": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string" ,
+          "enum": ["EQUALS_ANY_REF", "EQUALS_NONE_REF"]
+        },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type" : "string",
+            "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
+            "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+          }
+        }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "sizeConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["SIZE"] },
+        "min" : { "type": "number", "minimum": 0 },
+        "max" : { "type": "number", "minimum": 0 }
+      },
+      "required": ["type"],
+      "anyOf": [
+        { "required": ["min"] },
+        { "required": ["max"] }
+      ],
+      "additionalProperties": false
+    },
+    "rangeConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["RANGE"] },
+        "min" : { "type": "number" },
+        "max" : { "type": "number" }
+      },
+      "required": ["type"],
+      "anyOf": [
+        { "required": ["min"] },
+        { "required": ["max"] }
+      ],
+      "additionalProperties": false
+    },
+    "regexConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["REGEX_ANY"] },
+        "values" : {
+          "type": "array",
+          "items": { "type" : "string", "format": "regex" }
+        }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "datesConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["DATE_FUTURE", "DATE_PAST"] },
+        "days" : { "type": "number" }
+      },
+      "required": ["type", "days"],
+      "additionalProperties": false
     }
-  },
-    
-  "type": "object",
-  "properties": {
-    "schema-version": { "type": "string" , "enum": ["0.1"]},
-    "mandatoryRules": { "$ref": "#/definitions/typeRules" },
-    "immutableRules": { "$ref": "#/definitions/typeRules" },
-    "contentRules": { "type": "object" }
-  },
-  "required": ["schema-version", "mandatoryRules", "immutableRules", "contentRules"],
-  "additionalProperties": false
+  }
 }
-

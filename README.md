@@ -4,24 +4,48 @@ JSON schema that specifies validation rules in a language independant manner to 
 An online, interactive JSON Schema validator can be found here: https://www.jsonschemavalidator.net/
 
 ## Table of Contents
-* [TL;DR](#tl;dr)
+* [TL;DR](#tl;dr-aaa)
 * [Motivation](#motivation)
 * [Documentation](#documentation)
 * [Implementations](#implementations)
 * [TODOs](#todos)
 
-# TL;DR
-The purbose of this _JSON Schema_ is to describe the structure of _complex validation rules_, independent of a specific programming language. The resulting JSON documents are intended to be used in applications that involve multiple components written in different programmming languages where the rules have to be validated in several components, e.g. in a frontend written in ES6 and a backend written in Java. 
+# TL;DR aaa
+The purpose of this _JSON Schema_ is to describe the structure of _complex validation rules_, independent of a specific programming language. The resulting JSON documents are intended to be used in applications that involve multiple components written in different programmming languages where the rules have to be validated in several components, e.g. in a frontend written in ES6 and a backend written in Java. 
 
 The **main objective** is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for validation rules, according to the motto "define once, validate everywhere" (DOVE :)
 
 Of cause this requires the implementation of generic validators as well as the implementation of JSON producers resp. JSON consumers for valid JSON documents in the programming languages that are involved.
 
+E.g. with the Java implementation for this schema a quite complex validation rule that involves conditions that are logically linked by AND and OR can be defined like this: 
+```java
+    final ValidationRules<Article> articleRules = new ValidationRules<>(Article.class);
+    articleRules.immutable("animalUse",
+            ConstraintsTopGroup.OR(
+                    ConstraintsSubGroup.AND(
+                            Constraint.ref("animalUse", Equals.any(TRUE)),
+                            Constraint.ref("usedOnce", Equals.any(TRUE))
+                    ),
+                    ConstraintsSubGroup.AND(
+                            Constraint.ref("medicalSetId", Equals.notNull())
+                    )
+            )
+    );
+
+```
+With the help of the ES6 implementation a frontend can then check if a object property is immutable and e.g. should be displayed as _disabled_ like this:
+```javascript
+  article = {
+    // properties omitted
+  }
+  isImmutable("article", "animalUse", article);
+```
+
 # Motivation
 Validation of input data plays a crucial role in almost any web app. Whereby the server-side validation is a must, because the server should never trust the client-side.
 But client side validation is also important for a good user experience.
 
-The idea for this JSON Schema was inspired by a web application that had _many_ non trivial validation rules. The front-end of this application was written in Angular, while the back-end was written in Java. Most of these validation rules should be utilized also on the client-side. On the one hand to provide good user guidance, on the other hand to avoid numerious client-server round trips:
+The idea for this JSON Schema was inspired by a web application that had _many_ non trivial validation rules. The front-end of this application was written in JavaScript (Angular), while the back-end was written in Java. Most of these validation rules should be utilized also on the client-side. On the one hand to provide good user guidance, on the other hand to avoid numerious client-server round trips:
 - For a _mandatory_ object property the corresponding form input field should be decorated with a visual indicator and the submit button should be disabled as long as the user didn't enter a value for this property.
 - For an _immutable_ (a.k.a. _read-only_) object property the corresponding form input field should be set to disabled state.
 - For _content related validation rules_ the client should give immediate feedback to the user if the content of the input field doesn't pass the validation check.
@@ -144,13 +168,22 @@ Validation rules regarding the properties of an entity type are defined by a key
 ### Property related validation rules
 Validation rules for a single property of an entity type are defined by a key-value pair.
 
-The name of the key is determined by the name of the property
-- For a _simple property_ it is its name, e.g.
+The _name of the key_ is determined by the name of the property, i.e.
+- for a _simple property_ it is simply its name, e.g.
   - "responsibleUser"
--  For a _nested property_ the name is build by concatenating the property names of the access path by using "." separators, e.g.
+- for a _nested property_ the name is build by concatenating the property names of the access path by using "." (full stop) separators, e.g. 
   - "customer.address.city"
-- For _properties of objects that are part of arrays_, the property names can be appended by an _array index_ definition _[x]_, where _x_ is the index of the expected object, e.g.
-  - "medicalSets[0].articles[0].animalUse"
+- for _properties of objects that are part of arrays_, the names of the array properties can be appended by an _array index_ definition _[x]_, where _x_ is either
+  - a _single index value_ of the expected array position, e.g.
+    - "medicalSets[0].articles[0].animalUse"
+  - or _a comma separated list_ of index values, e.g.
+    - "medicalSets[1,2,3].articles[4,5].animalUse"
+  - or _a range definition_ of two index values separated by "-" (minus), e.g.
+    - "medicalSets[1-3].articles[4-5].animalUse"
+  - or _a start-step definition_ of two index values separated by "/" (slash), where the first value specifies the first array position and the second values defines the step size to the other array positions, e.g.
+    - "medicalSets[2/1].articles[0/2].animalUse"
+  - or _a star (\*)_ as a shortcut for the interval defnition [0/1], e.g.
+    - "medicalSets[\*].articles[\*].animalUse"
 
 The value is an **array** that may contain _contraint objects_.
 - For validation rules regarding **mandatory** and **immutable** properties the array **may be empty**. That means that this property is mandatory resp. immutable, period. Technically speaking the validation rule always evaluates to _true_.
@@ -388,8 +421,8 @@ TODO
 #### TODOs
 Handle TODOs ...
 Think about possible extensions, e.g.
--  Allow array index definitions like [1,3,5], [0/3], [1-9] or [*]
-
+-  Allow array index definitions like [1-3]#sum, [L2] (last 2), etc.
+- ...
 
 
 
