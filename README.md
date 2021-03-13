@@ -41,13 +41,12 @@ public class AnyClass {
         );
     }
 }
-
 ```
 The Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
 An application that uses this Java implementation can expose the JSON e.g. via a REST endpoint:
-```
-ValidationRules.serializeToJson(articleRules, otherRules);
-``
+
+    ValidationRules.serializeToJson(articleRules, otherRules);
+
 With the help of the ES6 implementation a frontend can then check if a object property is immutable and e.g. should be displayed as _disabled_ like this:
 ```javascript
   article = {
@@ -100,12 +99,12 @@ The documentation of all kinds of possible validation rules is _based on a close
 rules a little more descriptive.
 
 ## Close-to-life example
-Lets say we work for a company that rents _medical equipment_. Each medical _article_ may contain several _accessories_. 
-Articles are grouped in _medical sets_. The equipment is stored in warehouses and deliverd to customers locations. Staff 
-members schedule _reservations_ on behalf of their customers.
+Let's say we work for a company that rents _medical equipment_. Each medical _article_ may contain several 
+_accessories_. Articles are grouped in _medical sets_. The equipment is stored in warehouses and delivered to customers 
+locations. Staff members schedule _reservations_ on behalf of their customers.
 
 ### Example objects
-This are example objects for the aforementioned entity types with some of their properties. The more technical 
+These are example objects for the aforementioned entity types with some of their properties. The more technical 
 properties like _id_, _createdBy_ etc. are omitted:
 
 - Accessory
@@ -164,7 +163,7 @@ A fictitious requirements document could mention validation rules like this:
 1. Only managers are allowed to set customer level to PLATINUM.
 2. Allowed article status transitions are: NEW -> ACTIVE, NEW -> INACTIVE, ACTIVE -> INACTIVE/DECOMMISSIONED, INACTIVE 
    -> ACTIVE/DECOMMISSIONED".
-3. An article must have a resposible user if the article status is not NEW and the article is not assigned to a 
+3. An article must have a responsible user if the article status is not NEW, and the article is not assigned to a 
    MedicalSet.
 4. If an article is used for the first time, it has to be flagged as such. This flag must never be reset.
 5. The _animalUse_ property of an article must not be changed if a) it is assigned to a medical set, or b) it has been 
@@ -176,17 +175,17 @@ A fictitious requirements document could mention validation rules like this:
 
 ## JSON structure
 ### Top-level content
-A valid JSON contains 5 key-value pairs:
+A valid JSON contains 5 name/value pairs:
 - _schema-version_ specifies the version of the JSON schema in use.
-- _mandatoryRules_ is an object that _may contain_ a key-value pair for each _entity type_ that has validation rules 
+- _mandatoryRules_ is an object that _may contain_ a name/value pair for each _entity type_ that has validation rules 
   regarding mandatory properties.
-- _immutableRules_ is an object that _may contain_ a key-value pair for each _entitytype_ that has validation rules 
+- _immutableRules_ is an object that _may contain_ a name/value pair for each _entity type_ that has validation rules 
   regarding immutable properties.
-- _contentRules_ is an object that _may contain_ a key-value pair for each _entitytype_ that has validation rules 
+- _contentRules_ is an object that _may contain_ a name/value pair for each _entity type_ that has validation rules 
   regarding the content of properties.
-- _updateRules_ is an object that _may contain_ a key-value pair for each _entitytype_ that has validation rules 
-  regarding the updated content of properties, i.e. the allowed transitions between the original and the modified
-  content.
+- _updateRules_ is an object that _may contain_ a name/value pair for each _entity type_ that has validation rules 
+  regarding the updated content of properties, i.e. that describe the allowed transitions between the original and the 
+  modified content.
 
 ```json
 {
@@ -199,8 +198,8 @@ A valid JSON contains 5 key-value pairs:
 ```
 
 ### Entity Type related validation rules
-Validation rules regarding the properties of an entity type are defined by a key-value pair where the key is the name of
-the entity type. The value is an object that _may contain_ a key-value pair for each property of that type.
+Validation rules regarding the properties of an entity type are defined by a name/value pair where the name is the name 
+of the entity type. The value is an object that _may contain_ a name/value pair for each property of that type.
 ```json
   {
     "article": {},
@@ -210,34 +209,34 @@ the entity type. The value is an object that _may contain_ a key-value pair for 
 ```
 
 ### Property related validation rules
-Validation rules for a single property of an entity type are defined by a key-value pair.
+Validation rules for a single property of an entity type are defined by a name/value pair.
 
-The _name of the key_ is determined by the name of the property, i.e.
+The name of the pair is determined by the _name of the property_, i.e.
 - for a _simple property_ it is simply its name, e.g.
-  - "responsibleUser"
+  - > "responsibleUser"
 - for a _nested property_ the name is build by concatenating the property names of the access path by using "." (full 
   stop) separators, e.g. 
-  - "customer.address.city"
+  - > "customer.address.city"
 - for _properties of objects that are part of arrays_, the names of the array properties can be appended by an _array 
   index_ definition _[x]_, where _x_ is either
   - a _single index value_ of the expected array position, e.g.
-    - "medicalSets[0].articles[0].animalUse"
+    - > "medicalSets[0].articles[0].animalUse"
   - or _a comma separated list_ of index values, e.g.
-    - "medicalSets[1,2,3].articles[4,5].animalUse"
+    - > "medicalSets[1,2,3].articles[4,5].animalUse"
   - or _a range definition_ of two index values separated by "-" (minus), e.g.
-    - "medicalSets[1-3].articles[4-5].animalUse"
+    - > "medicalSets[1-3].articles[4-5].animalUse"
   - or _a start-step definition_ of two index values separated by "/" (slash), where the first value specifies the first
     array position and the second values defines the step size to the other array positions, e.g.
-    - "medicalSets[2/1].articles[0/2].animalUse"
+    - > "medicalSets[2/1].articles[0/2].animalUse"
   - or _a star (\*)_ as a shortcut for the interval defnition [0/1], e.g.
-    - "medicalSets[\*].articles[\*].animalUse"
+    - > "medicalSets[\*].articles[\*].animalUse"
 
-The value is an **array** that may contain _condition objects_.
+The value is an **array** that may contain different types of _condition objects_.
 - For validation rules regarding **mandatory** and **immutable** properties the array **may be empty**. That means that 
   this property is mandatory resp. immutable, period. Technically speaking the validation rule always evaluates to 
   _true_.
-- For **content** and **update** validation rules the array **must not be empty**, because there must be at least one statement
-  about the _expected content_ of the property the rule is defined for.
+- For **content** and **update** validation rules the array **must not be empty**, because there must be at least one 
+  statement about the _expected content_ of the property the rule is defined for.
 ```json
     {
       "status": [],
@@ -247,34 +246,35 @@ The value is an **array** that may contain _condition objects_.
 ```
 
 ### Condition types and objects
-Condition objects specify _further conditions_ under which the validation rules will validate to true. There are _3 
-types_ of these conditions represented by three key-values pairs:
-1. The key _constraint_ is used for conditions that relate to the content of the property the validation rule is defined 
-   for. The value is an [elementary constraint object](#Elementary constraints) that defines the allowed content of this
-   property. This type of condition is required for **content** and **update** rules and not allowed for **mandatory**
-   and **immutable** ones.
-    > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
-    ```json
-    { 
-      "contentRules": {
-        "article": {
-          "name": [
-            {
-              "constraint": {
-                "type": "SIZE",
-                "min": 5,
-                "max": 100
-              }
-            }
-          ]
-        }
-      }
-    }
-    ```
-2. The key _permissions_ is used to restrict the validity of the validation rule to certain user permissions. The value
-   is a constraint object with 2 keys: _type_ with value _ANY_ and _values_ which is an array of permission names.
-    > JSON for example validation rule: "The article name must not be modified if the user (who wants to insert resp. 
-   > update the object) owns any of the permissons resp. roles APPRENTICE or REVIEWER":
+Condition objects specify _further conditions_ under which the validation rules will validate to true. There are 
+represented by different name/values pairs:
+1. The first pair with the name _constraint_ is used for conditions that relate to the _content of the property_ the 
+   validation rule is defined for. The value is an [elementary constraint object](#Elementary%20constraints) that 
+   defines the allowed content of this property. This type of condition is required for **content** and **update** rules
+   and not allowed for **mandatory** and **immutable** ones.
+   > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
+   ```json
+   { 
+     "contentRules": {
+       "article": {
+         "name": [
+           {
+             "constraint": {
+               "type": "SIZE",
+               "min": 5,
+               "max": 100
+             }
+           }
+         ]
+       }
+     }
+   }
+   ```
+2. The second pair with the name _permissions_ is used to restrict the validity of the validation rule to certain _user 
+   permissions_. The value is an object with 2 names: _type_ with value _ANY_ and _values_ with a list of allowed 
+   permission names.
+   > JSON for example validation rule: "The article name must not be modified if the user (who wants to insert resp. 
+   > update the object) owns any of the permission resp. role APPRENTICE or REVIEWER":
     ```json
     { 
       "immutableRules": {
@@ -295,101 +295,151 @@ types_ of these conditions represented by three key-values pairs:
     }
     ```
 
-3. Often, deciding whether a validation rule is valid depends on conditions on other _related properties_. These 
-   constraints are themselves connected via logical _AND/OR operations_.
+3. Often, the decision whether a validation rule should be applied depends on conditions on other _related properties_. 
+   
+   If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, a _OR 
+   operation_ or even both.
+   
+   Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to define logical expressions like
+   
+   ``a AND b AND c AND d``,
+   
+   ``a OR b OR c OR d``,
+   
+   ``a AND b OR c AND d``,
+   
+   ``(a OR b) AND (c OR d)``
+   
+   and similar variants.
     
-   Let _a, b, c_ and _d_ be 4 of these constraints. Then it should be possible to define logical expressions like _"a 
-   AND b OR c AND d"_, _"(a OR b) AND (c OR d)", and similar variants.
-
-   These kinds of validation rules can be expressed by a JSON structure where the _related property constrains_ are 
-   grouped by using the keys _conditionsTopGroup_ and _conditionsGroups_ like this:
-    ```json
-        {
-          "conditionsTopGroup": {
-            "operator": "AND",
-            "conditionsGroups": [
-              {
-                "operator": "OR",
-                "conditions": [
-                ]
-              }
-            ]
+   - 1. The third pair has the name _condition_ and is used to define a _single one of these conditions_.
+        The value is an object with 2 name/value pairs: the value of the name _property_ is the name of the property 
+        (as defined in [Property related validation rules](#Property%20related%20validation%20rules)) this condition
+        is defined for.
+        The value of the name _constraint_ is an [elementary constraint object](#Elementary%20constraints)
+        > JSON for example validation rule: "If an article is used for the first time, it has to be flagged as such. 
+        This flag must never be reset"
+        ```json
+        { 
+          "immutableRules": {
+            "article": {
+              "everUsed": [
+                {
+                  "condition": {
+                    "property": "everUsed",
+                    "constraint": {
+                      "type": "EQUALS_ANY",
+                      "values": [
+                        true
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
-    ```
-    > JSON for example validation rule: "The animalUse property of an article must not be changed if a) it is assigned 
-    > to a medical set, or b) it has been used once for animals":
-    ```json
-    { 
-      "immutableRules": {
-        "article": {
-          "animalUse": [
-            {
-              "conditionsTopGroup": {
-                "operator": "OR",
-                "conditionsGroups": [
-                  {
+        ```
+   - 2. TODO _multiple of these conditions_ which are logically ANDed resp. ORed.
+        ```json
+        { 
+          "immutableRules": {
+            "article": {
+              "foo": [
+                {
+                  "conditionsGroup": {
                     "operator": "AND",
                     "conditions": [
                       {
-                        "property": "medicalSetId",
-                        "type": "EQUALS_NOT_NULL"
+                        "property": "bar",
+                        "constraint": {
+                          "type": "SIZE",
+                          "min": 1,
+                          "max": 3
+                        }
+                      },
+                      {
+                        "property": "zoo[*]",
+                        "constraint": {
+                          "type": "EQUALS_NOT_NULL"
+                        }
                       }
                     ]
-                  },
-                  {
-                    "operator": "AND",
-                    "conditions": [
+                  }
+                }
+              ]
+            }
+          }
+        }
+        ```
+   - 3. TODO _multiple of these conditions_ which are _both_ logically ANDed and ORed.
+       > JSON for example validation rule: "The animalUse property of an article must not be changed if a) it is 
+       assigned to a medical set, or b) it has been used once for animals":
+        ```json
+        { 
+          "immutableRules": {
+            "article": {
+              "foo": [
+                {
+                  "conditionsTopGroup": {
+                    "operator": "OR",
+                    "conditionsGroups": [
                       {
-                        "property": "everUsed",
-                        "type": "EQUALS_ANY",
-                        "values": [
-                          true
+                        "operator": "AND",
+                        "conditions": [
+                          {
+                            "property": "medicalSetId",
+                            "constraint": {
+                              "type": "EQUALS_NOT_NULL"
+                            }
+                          }
                         ]
                       },
                       {
-                        "property": "animalUse",
-                        "type": "EQUALS_ANY",
-                        "values": [
-                          true
+                        "operator": "AND",
+                        "conditions": [
+                          {
+                            "property": "everUsed",
+                            "constraint": {
+                              "type": "EQUALS_ANY",
+                              "values": [
+                                true
+                              ]
+                            }
+                          },
+                          {
+                            "property": "animalUse",
+                            "constraint": {
+                              "type": "EQUALS_ANY",
+                              "values": [
+                                true
+                              ]
+                            }
+                          }
                         ]
                       }
                     ]
                   }
-                ]
-              }
+                }
+              ]
             }
-          ]
+          }
         }
-      }
-    }
-    ```
-
-For content related validation rules the _content_ key is mandatory.
-For validation rules regarding mandatory and immutable properties at least one of the _permissions_ and _dependencies_ 
-keys must be present. The _content_ key is not allowed (resp. necessary).
-
-### Combining contraint types and objects
-TODO
-
-
+        ```
+    
 ## Elementary constraints
-An elementary contraint can be used as a _content constraint_ or a _related property constraint_.
+An elementary contraint can be used as a _content constraint_ or within conditions for _related properties_.
 
-The value of the key _type_ is a string stating the type of the constraint. 
-Each type may have type further specific key-values pairs.
+The value of the name _type_ is a string stating the type of the constraint. 
+Each type may have type further specific name/values pairs.
 
-If the constraint is used as a _related property constraint_ an additional key-value pair is required, where the key is 
-_property_ and the value is the name of the property to which the constraint should be applied.
-
-### EQUALS
+### EQUALS constraints
 #### EQUALS_ANY
 The EQUALS_ANY constraint validates that the mentioned property value equals one of the (static) values listed in the 
 array named _values_. It can be applied to string, number, and boolean. If the string complies to the data-time format 
 it should be interpreted as such.
 ```json
     {
-      "property": "status",
       "type": "EQUALS_ANY",
       "values": [
         "ACTIVE",
@@ -402,7 +452,6 @@ With the EQUALS_ANY_REF constraint it is possible to compair the values of diffe
 mentioned property value equals one of the property values referenced by the property names listed in the array named _values_.
 ```json
     {
-      "property": "status",
       "type": "EQUALS_ANY_REF",
       "values": [
         "articles[0].status",
@@ -414,7 +463,6 @@ mentioned property value equals one of the property values referenced by the pro
 TODO
 ```json
     {
-      "property": "status",
       "type": "EQUALS_NONE",
       "values": [
         "NEW",
@@ -426,7 +474,6 @@ TODO
 TODO
 ```json
     {
-      "property": "status",
       "type": "EQUALS_NONE_REF",
       "values": [
         "articles[0].status",
@@ -438,7 +485,6 @@ TODO
 TODO
 ```json
     {
-      "property": "status",
       "type": "EQUALS_NULL"
     }
 ```
@@ -446,22 +492,20 @@ TODO
 TODO
 ```json
     {
-      "property": "status",
       "type": "EQUALS_NOT_NULL"
     }
 ```
-#### REGEX_ANY
+### REGEX_ANY constraint
 TODO
 ```json
     {
-      "property": "zipCode",
       "type": "REGEX_ANY",
       "values": [
         "^[0-9]{5}$"
       ]
     }
 ```
-#### SIZE 
+### SIZE constraint
 SIZE validates that the mentioned property value has a size between the attributes min and max. 
 
 It can be applied to
@@ -470,22 +514,48 @@ It can be applied to
 - _object_
 ```json
     {
-      "property": "arrayProp",
       "type": "SIZE",
       "min": 1,
       "max": 10
     }
 ```
+### RANGE constraint
+TODO
+
+### DATE constraints
+#### DATE_FUTURE
+TODO
+#### DATE_PAST
+TODO
+
 
 # Implementations
 TODO
 - see Cross Language Validation Java (Producer and Validator)
 - see Cross Language Validation ES6 (Consumer and Validator)
+## Implementation status
+TODO
 
-#### TODOs
+Supported feature | Java  | ES6 |
+--- | --- | ---
+|JSON producer|+|-|
+|JSON consumer|-|+|
+|Validator for _mandatory_/rules|+|+|
+|Validator for _immutable_ rules|+|+|
+|Validator for _content_ rules|+|-|
+|Validator for _update_ rules|+|-|
+|Validator for _update_ rules|+|-|
+|Supports simple property names (e.g. ``responsibleUser``)|+|+|
+|Supports nested property names (e.g. ``customer.address.city``)|+|+|
+|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)|+|+|
+|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)|+|-|
+|...|?|?|
+
+# TODOs
 Handle TODOs ...
+
 Think about possible extensions, e.g.
--  Allow array index definitions like [1-3]#sum, [L2] (last 2), etc.
+-  Allow array index definitions like [1-3]#sum, [2$] (last 2), etc.
 - ...
 
 
