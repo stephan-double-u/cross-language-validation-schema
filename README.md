@@ -249,7 +249,7 @@ The value is an **array** that may contain different types of _condition objects
 Condition objects specify _further conditions_ under which the validation rules will validate to true. There are 
 represented by different name/values pairs:
 1. The first pair with the name _constraint_ is used for conditions that relate to the _content of the property_ the 
-   validation rule is defined for. The value is an [elementary constraint object](#Elementary%20constraints) that 
+   validation rule is defined for. The value is an [elementary constraint object](#Elementary-constraints) that 
    defines the allowed content of this property. This type of condition is required for **content** and **update** rules
    and not allowed for **mandatory** and **immutable** ones.
    > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
@@ -314,9 +314,9 @@ represented by different name/values pairs:
     
    - 1. The third pair has the name _condition_ and is used to define a _single one of these conditions_.
         The value is an object with 2 name/value pairs: the value of the name _property_ is the name of the property 
-        (as defined in [Property related validation rules](#Property%20related%20validation%20rules)) this condition
+        (as defined in [Property related validation rules](#Property-related-validation-rules)) this condition
         is defined for.
-        The value of the name _constraint_ is an [elementary constraint object](#Elementary%20constraints)
+        The value of the name _constraint_ is an [elementary constraint object](#Elementary-constraints)
         > JSON for example validation rule: "If an article is used for the first time, it has to be flagged as such. 
         This flag must never be reset"
         ```json
