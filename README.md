@@ -1,10 +1,10 @@
-# Cross Language Validation Schema - V0.2
+# Cross Language Validation (CLV) Schema - V0.2
 JSON schema that specifies validation rules in a language independant manner to enable cross language validation.
 
 An online, interactive JSON Schema validator can be found here: https://www.jsonschemavalidator.net/
 
 ## Table of Contents
-* [TL;DR](#tl;dr)
+* [TL;DR](#tldr)
 * [Motivation](#motivation)
 * [Documentation](#documentation)
 * [Implementations](#implementations)
@@ -14,15 +14,18 @@ An online, interactive JSON Schema validator can be found here: https://www.json
 The purpose of this _JSON Schema_ is to describe _complex validation rules_, independent of a specific 
 programming language. The resulting JSON documents are intended to be used in applications that involve multiple 
 components possibly written in different programmming languages where the rules have to be validated in several 
-components, e.g. in a frontend written in ES6 and a backend written in Java. 
+components, e.g. in a frontend written in ES6 and a backend written in Java. Nevertheless, an implementation for that
+schema can also be used usefully on its own e.g. in a Java backend.
 
-The **main objective** is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
+One objective is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
 validation rules, according to the motto "define once, validate everywhere".
 
 Of cause this requires the implementation of generic validators as well as the implementation of JSON _producers_ resp. 
 JSON _consumers_ for valid JSON documents in the programming languages that are involved.
 
-E.g. with the Java implementation for this schema a quite complex validation rule that involves conditions that are 
+E.g. with the [CLV Java implementation](https://github.com/stephan-double-u/cross-language-validation-java) 
+for this 
+schema a quite complex validation rule that involves conditions that are 
 logically linked by AND and OR can be defined like this: 
 ```java
 public class AnyClass {
@@ -42,12 +45,12 @@ public class AnyClass {
     }
 }
 ```
-The Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
+This Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
 An application that uses this Java implementation can expose the JSON e.g. via a REST endpoint:
 
     ValidationRules.serializeToJson(articleRules, otherRules);
 
-With the help of the ES6 implementation a frontend can then check if a object property is immutable and e.g. should be displayed as _disabled_ like this:
+With the help of the [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) a frontend can then check if a object property is immutable and e.g. should be displayed as _disabled_ like this:
 ```javascript
   article = {
     "animalUse": "true",
@@ -85,14 +88,13 @@ and limitations:
 - Cross property validations requires lots of code.
 - Rules that dependent on user permissions cannot be expressed in compact form [TODO check statement].
 
-## Required features of a flexible and expressive framework
+## Required features of a flexible and expressive validation framework
 It should be possible to define validation rules 
 - for hierarchical (a.k.a. _nested_) properties
 - that involve conditions for any number of properties (a.k.a. _multi property validation_)
 - that allow to combine these conditions mit logical AND resp. OR
-- for arrays resp. list properties
-  that refer to individual arrays resp. list elements
-- that depends on user permissions
+- for arrays resp. list properties it should be possible to refer to individual array resp. list elements
+- that may depend on individual user permissions
 
 # Documentation
 The documentation of all kinds of possible validation rules is _based on a close-to-life example_ to make the exemplary 
@@ -175,7 +177,7 @@ A fictitious requirements document could mention validation rules like this:
 
 ## JSON structure
 ### Top-level content
-A valid JSON contains 5 name/value pairs:
+A valid JSON contains _5 name/value_ pairs:
 - _schema-version_ specifies the version of the JSON schema in use.
 - _mandatoryRules_ is an object that _may contain_ a name/value pair for each _entity type_ that has validation rules 
   regarding mandatory properties.
@@ -225,7 +227,7 @@ The name of the pair is determined by the _name of the property_, i.e.
     - > "medicalSets[1,2,3].articles[4,5].animalUse"
   - or _a range definition_ of two index values separated by "-" (minus), e.g.
     - > "medicalSets[1-3].articles[4-5].animalUse"
-  - or _a start-step definition_ of two index values separated by "/" (slash), where the first value specifies the first
+  - or _a start-step definition_ of two values separated by "/" (slash), where the first value specifies the first
     array position and the second values defines the step size to the other array positions, e.g.
     - > "medicalSets[2/1].articles[0/2].animalUse"
   - or _a star (\*)_ as a shortcut for the interval defnition [0/1], e.g.
@@ -246,7 +248,7 @@ The value is an **array** that may contain different types of _condition objects
 ```
 
 ### Condition types and objects
-Condition objects specify _further conditions_ under which the validation rules will validate to true. There are 
+Condition objects specify _further conditions_ under which the validation rules will validate to true. They are 
 represented by different name/values pairs:
 1. The first pair with the name _constraint_ is used for conditions that relate to the _content of the property_ the 
    validation rule is defined for. The value is an [elementary constraint object](#Elementary-constraints) that 
@@ -273,7 +275,7 @@ represented by different name/values pairs:
 2. The second pair with the name _permissions_ is used to restrict the validity of the validation rule to certain _user 
    permissions_. The value is an object with 2 names: _type_ with value _ANY_ and _values_ with a list of allowed 
    permission names.
-   > JSON for example validation rule: "The article name must not be modified if the user (who wants to insert resp. 
+   > JSON for example validation rule: "The article name must not be modified if the user (who wants to 
    > update the object) owns any of the permission resp. role APPRENTICE or REVIEWER":
     ```json
     { 
