@@ -494,8 +494,7 @@ named _values_.
 
 #### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
-in the
-array named _values_.
+in the array named _values_.
 ```json
     {
       "type": "EQUALS_NONE",
@@ -548,7 +547,8 @@ The EQUALS_NOT_NULL constraint checks whether the value of the associated proper
 **TODO**: allowed types
 
 ### REGEX_ANY constraint
-TODO
+The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
+expressions_ listed in the array named _values_.
 ```json
     {
       "type": "REGEX_ANY",
@@ -557,13 +557,11 @@ TODO
       ]
     }
 ```
-### SIZE constraint
-SIZE validates that the mentioned property value has a size between the attributes min and max. 
+**TODO**: allowed types and supported reg exp
 
-It can be applied to
-- _string_
-- _array_
-- _object_
+### SIZE constraint
+The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values of the keys
+_min_ resp. _max_. 
 ```json
     {
       "type": "SIZE",
@@ -571,6 +569,12 @@ It can be applied to
       "max": 10
     }
 ```
+
+This constraint can be applied to properties of type
+- _string_ - the size of a string corresponds to the number string characters.
+- _array_ - the size of an array corresponds to the number of array elements.
+- _object_ - the size of an object corresponds to the number of object keys.
+
 ### RANGE constraint
 TODO
 
