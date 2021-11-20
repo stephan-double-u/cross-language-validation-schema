@@ -490,7 +490,8 @@ named _values_.
       ]
     }
 ```
-**TODO**: allowed types
+This constraint can be applied to properties of type
+- **TODO**
 
 #### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
@@ -526,7 +527,8 @@ named _values_.
       ]
     }
 ```
-**TODO**: allowed types
+This constraint can be applied to properties of type
+- **TODO**
 
 #### EQUALS_NULL
 The EQUALS_NULL constraint checks whether the value of the associated property is _null_.
@@ -535,7 +537,8 @@ The EQUALS_NULL constraint checks whether the value of the associated property i
       "type": "EQUALS_NULL"
     }
 ```
-**TODO**: allowed types
+This constraint can be applied to properties of type
+- **TODO**
 
 #### EQUALS_NOT_NULL
 The EQUALS_NOT_NULL constraint checks whether the value of the associated property is _not null_.
@@ -544,7 +547,8 @@ The EQUALS_NOT_NULL constraint checks whether the value of the associated proper
       "type": "EQUALS_NOT_NULL"
     }
 ```
-**TODO**: allowed types
+This constraint can be applied to properties of type
+- **TODO**
 
 ### REGEX_ANY constraint
 The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
@@ -557,7 +561,10 @@ expressions_ listed in the array named _values_.
       ]
     }
 ```
-**TODO**: allowed types and supported reg exp
+This constraint can be applied to properties of type
+- **TODO**
+
+**TODO**: supported reg exp
 
 ### SIZE constraint
 The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values of the keys
@@ -565,7 +572,7 @@ _min_ resp. _max_.
 ```json
     {
       "type": "SIZE",
-      "min": 1,
+      "min": 0,
       "max": 10
     }
 ```
@@ -575,8 +582,29 @@ This constraint can be applied to properties of type
 - _array_ - the size of an array corresponds to the number of array elements.
 - _object_ - the size of an object corresponds to the number of object keys.
 
+At least one of the keys _min_ or _max_ must be specified. The other key is optional.
+
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.
+
+The values of the keys _min_ and _max_ must be > 0 (zero).
+
 ### RANGE constraint
-TODO
+The RANGE constraint checks whether the value of the associated property is within the range defined by the numeric 
+values of the keys _min_ and _max_.
+```json
+    {
+      "type": "RANGE",
+      "min": 0,
+      "max": 10
+    }
+```
+This constraint can be applied to properties of type
+- **TODO**
+
+At least one of the keys _min_ or _max_ must be specified. The other key is optional.
+
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.
+
 
 ### DATE constraints
 #### DATE_FUTURE
