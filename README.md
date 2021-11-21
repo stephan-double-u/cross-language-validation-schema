@@ -608,15 +608,36 @@ If both keys are specified, the _min-value_ must not be greater than the _max-va
 
 ### DATE constraints
 #### DATE_FUTURE
-TODO
+The DATE_FUTURE constraint checks whether the value of the associated property is a date that is 0 or more days _in the 
+future_. The number of days is defined as value of the key _days_.
+```json
+    {
+      "type": "DATE_FUTURE",
+      "days": 0
+    }
+```
+This constraint can be applied to properties of type
+- **TODO**
+
 #### DATE_PAST
-TODO
+The DATE_PAST constraint checks whether the value of the associated property is a date that is 0 or more days _in the
+past_. The number of days is defined as value of the key _days_.
+```json
+    {
+      "type": "DATE_PAST",
+      "days": 0
+    }
+```
+This constraint can be applied to properties of type
+- **TODO**
 
 
 # Implementations
-TODO
-- see Cross Language Validation Java (Producer and Validator)
-- see Cross Language Validation ES6 (Consumer and Validator)
+- [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
+  Validator and a Producer for this schema in Java.
+-[Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
+  a Validator and a Consumer for this schema in ECMAScript 6.
+
 ## Implementation status
 TODO
 
@@ -634,13 +655,13 @@ Supported feature | Java  | ES6 |
 |Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)|+|-|
 |...|?|?|
 
+# Thoughts about possible extensions
+- Allow array index definitions like [1-3]#sum, [2L] (last 2), etc.
+-
+- more?
+
 # TODOs
-Handle TODOs ...
-
-Think about possible extensions, e.g.
--  Allow array index definitions like [1-3]#sum, [2$] (last 2), etc.
-- ...
-
+- Handle TODOs ...
 
 
 
