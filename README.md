@@ -656,12 +656,9 @@ Supported feature | Java  | ES6 |
 |...|?|?|
 
 # Thoughts about possible extensions
-- Allow array index definitions like [1-3]#sum, [2L] (last 2), etc.
--
-- more?
-
-# TODOs
-- Handle TODOs ...
+- DATE_FUTURE/PAST with _minDays_ and _maxDays_?
+- Array index definitions with 'functions' (e.g. [1-3]#sum)? 
+- Array index definition 'last N elements' (e.g. [2L])?
 
 
 
