@@ -30,7 +30,7 @@
       "type": "object",
       "propertyNames": {
         "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
-        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?)*$"
       },
       "additionalProperties": {
         "type": "array",
@@ -40,7 +40,7 @@
     "propertyRulesContent": {
       "type": "object",
       "propertyNames": {
-        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+        "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?)*$"
       },
       "additionalProperties": {
         "type": "array",
@@ -246,7 +246,7 @@
           "items": {
             "type" : "string",
             "$comment": "E.g. 'id[0].foo[1].zoo'; is a 'pattern description' enough?",
-            "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?.)*[\\p{L}_$][\\p{L}\\p{N}_$]*([[][0-9]+[]])?$"
+            "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[][0-9]+[\\]])?)*$"
           }
         }
       },

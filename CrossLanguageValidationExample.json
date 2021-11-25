@@ -2,14 +2,15 @@
   "schema-version": "0.2",
   "mandatoryRules": {
     "reservation": {
-      "customer": [
+      "customer.foo": [
         {
           "condition": {
-            "property": "aBoolean",
+            "property": "aDate",
             "constraint": {
               "type": "EQUALS_ANY",
               "values": [
-                true
+                "2022-01-01T00:00Z",
+                "2022-01-02T00:00Z"
               ]
             }
           }
