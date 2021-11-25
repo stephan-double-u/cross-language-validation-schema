@@ -473,9 +473,8 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the data-time format it should be interpreted as such.
-
-**TODO**: specify date and date-time formats.
+If the string complies to the _data_ resp. _data-time_ format (according to 
+[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
 
 #### EQUALS_ANY_REF
 With the EQUALS_ANY_REF constraint it is possible to compare the _values of properties_. It validates that the
@@ -510,9 +509,8 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the data-time format it should be interpreted as such.
-
-**TODO**: specify date and date-time formats.
+If the string complies to the _data_ resp. _data-time_ format (according to
+[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
 
 #### EQUALS_NONE_REF
 With the EQUALS_NONE_REF constraint it is possible to compare the _values of properties_. It validates that the
@@ -657,6 +655,7 @@ Supported feature | Java  | ES6 |
 
 # Thoughts about possible extensions
 - DATE_FUTURE/PAST with _minDays_ and _maxDays_?
+- DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
 - Array index definitions with 'functions' (e.g. [1-3]#sum)? 
 - Array index definition 'last N elements' (e.g. [2L])?
 
