@@ -641,9 +641,9 @@ TODO
 
 Supported feature | Java  | ES6 |
 --- | --- | ---
-|JSON producer|+|-|
-|JSON consumer|-|+|
-|Validator for _mandatory_/rules|+|+|
+|JSON Producer|+|-|
+|JSON Consumer|-|+|
+|Validator for _mandatory_ rules|+|+|
 |Validator for _immutable_ rules|+|+|
 |Validator for _content_ rules|+|-|
 |Validator for _update_ rules|+|-|
@@ -656,7 +656,14 @@ Supported feature | Java  | ES6 |
 # Thoughts about possible extensions
 - DATE_FUTURE/PAST with _minDays_ and _maxDays_?
 - DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
-- Array index definitions with 'functions' (e.g. [1-3]#sum)? 
+- Array index definitions with 'functions'?
+  - e.g. foo[*]#sum, foo[*].bar[*].name#unique
+  - Remark: min/max not needed, because e.g. the content constraint
+    
+    "article[*].price#max -> Range.max(1000)" is equivalent to
+    
+    "article[*].price -> Range.max(1000)"
+    
 - Array index definition 'last N elements' (e.g. [2L])?
 
 
