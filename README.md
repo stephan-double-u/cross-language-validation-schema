@@ -9,6 +9,7 @@ An online, interactive JSON Schema validator can be found here: https://www.json
 * [Documentation](#documentation)
   * [Close-to-life example](#close-to-life-example)
   * [JSON structure](#json-structure)
+  * [Elementary constraints](#elementary-constraints)
 * [Implementations](#implementations)
 * [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
@@ -61,7 +62,7 @@ a frontend can then check if a object property is immutable and e.g. should be d
     "medicalSetId": "S-123-456"
     // other properties omitted
   }
-  isImmutable("article", "animalUse", article); // should evaluate to true
+  animalUseCheckbox.disabled = isPropertyImmutable("article", "animalUse", article);
 ```
 
 # Motivation
@@ -191,6 +192,7 @@ A valid JSON contains _5 key/value_ pairs:
   regarding the _updated_ content of properties, i.e. describe the allowed transitions between the original and the 
   changed content.
 
+Thus, the most minimal valid JSON file (i.e. a file that does not contain any validation rule at all) look like this:
 ```json
 {
   "schema-version": "0.2",
@@ -203,7 +205,9 @@ A valid JSON contains _5 key/value_ pairs:
 
 ### Entity Type related validation rules
 Validation rules regarding the properties of an entity type are defined by a key/value pair where the key is the name 
-of the entity type. The value is an object that _may contain_ a key/value pair for each property of that type.
+of the entity type. The value is an object that _may contain_ a key/value pair for any property of that type.
+
+A possible value of one of the above-mentioned `*Rules` keys:
 ```json
   {
     "article": {},
@@ -252,7 +256,7 @@ The value is an **array** that may contain different types of _condition objects
 ```
 
 ### Condition types and objects
-Condition objects specify _further conditions_ under which the validation rules will validate to true. They are 
+Condition objects specify _further conditions_ under which the validation rules will be validated. They are 
 represented by different key/value pairs:
 1. The first key/value pair with the key _constraint_ is used for conditions that relate to the _content of the 
    property_ the validation rule is defined for. The value is an [elementary constraint object](#Elementary-constraints)
