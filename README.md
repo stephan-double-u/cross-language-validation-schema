@@ -7,8 +7,10 @@ An online, interactive JSON Schema validator can be found here: https://www.json
 * [TL;DR](#tldr)
 * [Motivation](#motivation)
 * [Documentation](#documentation)
+  * [Close-to-life example](#close-to-life-example)
+  * [JSON structure](#json-structure)
 * [Implementations](#implementations)
-* [TODOs](#todos)
+* [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
 # TL;DR
 The purpose of this _JSON Schema_ is to describe _complex validation rules_, independent of a specific 
@@ -86,7 +88,7 @@ and limitations:
 - The functionality of some standard annotations are quite limited. E.g. with @Future it is not possible to validate 
   that a date is 2 days in the future.
 - Cross property validations requires lots of code.
-- Rules that dependent on user permissions cannot be expressed in compact form [TODO check statement].
+- Rules that dependent on user permissions cannot be expressed in a compact form.
 
 ## Required features of a flexible and expressive validation framework
 It should be possible to define validation rules 
@@ -473,11 +475,11 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _data_ resp. _data-time_ format (according to 
+If the string complies to the _date_ resp. _date-time_ format (according to 
 [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
 
 #### EQUALS_ANY_REF
-With the EQUALS_ANY_REF constraint it is possible to compare the _values of properties_. It validates that the
+With the EQUALS_ANY_REF constraint it is possible to compare the values of properties. It validates that the
 value of the associated property equals any of the property values referenced by the property names listed in the array 
 named _values_.
 ```json
@@ -490,7 +492,15 @@ named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- **TODO**
+- _string_,
+- _number_
+- _boolean_
+
+If the string complies to the _date_ resp. _date-time_ format (according to
+[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
+
+The type of the associated property must equal the type of the properties referenced by the property names listed in the
+array named _values_.
 
 #### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
@@ -505,7 +515,7 @@ in the array named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- _string_,
+- _string_
 - _number_
 - _boolean_
 
@@ -514,8 +524,8 @@ If the string complies to the _data_ resp. _data-time_ format (according to
 
 #### EQUALS_NONE_REF
 With the EQUALS_NONE_REF constraint it is possible to compare the _values of properties_. It validates that the
-value of the associated property does _not match_ any of the property values referenced by the property names listed in the array
-named _values_.
+value of the associated property does _not match_ any of the property values referenced by the property names listed in 
+the array named _values_.
 ```json
     {
       "type": "EQUALS_NONE_REF",
@@ -526,7 +536,15 @@ named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- **TODO**
+- _string_
+- _number_
+- _boolean_
+
+If the string complies to the _date_ resp. _date-time_ format (according to
+[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
+
+The type of the associated property must equal the type of the properties referenced by the property names listed in the
+array named _values_.
 
 #### EQUALS_NULL
 The EQUALS_NULL constraint checks whether the value of the associated property is _null_.
@@ -536,7 +554,11 @@ The EQUALS_NULL constraint checks whether the value of the associated property i
     }
 ```
 This constraint can be applied to properties of type
-- **TODO**
+- _string_
+- _number_
+- _boolean_
+- _array_
+- _object_
 
 #### EQUALS_NOT_NULL
 The EQUALS_NOT_NULL constraint checks whether the value of the associated property is _not null_.
@@ -546,7 +568,11 @@ The EQUALS_NOT_NULL constraint checks whether the value of the associated proper
     }
 ```
 This constraint can be applied to properties of type
-- **TODO**
+- _string_
+- _number_
+- _boolean_
+- _array_
+- _object_
 
 ### REGEX_ANY constraint
 The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
@@ -560,9 +586,16 @@ expressions_ listed in the array named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- **TODO**
+- _string_
+- _number_
 
-**TODO**: supported reg exp
+**NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features 
+usually results from the lowest common denominator of the languages involved. 
+For instance, a `REGEX_ANY` validation rule that should be 'shared' between a Java backend and a ES6 frontend, should 
+not use _inline modifiers_ (e.g. `(?i)`),
+[because ES6 has no support for it](https://en.wikipedia.org/wiki/Comparison_of_regular_expression_engines#Part_2).
+(At least as long as the ES6 implementation does not use externals libraries to augment their build-in regex 
+capabilities, like e.g. [XRegExp](https://xregexp.com/))
 
 ### SIZE constraint
 The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values of the keys
@@ -639,19 +672,19 @@ This constraint can be applied to properties of type
 ## Implementation status
 TODO
 
-Supported feature | Java  | ES6 |
---- | --- | ---
-|JSON Producer|+|-|
-|JSON Consumer|-|+|
-|Validator for _mandatory_ rules|+|+|
-|Validator for _immutable_ rules|+|+|
-|Validator for _content_ rules|+|-|
-|Validator for _update_ rules|+|-|
-|Supports simple property names (e.g. ``responsibleUser``)|+|+|
-|Supports nested property names (e.g. ``customer.address.city``)|+|+|
-|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)|+|+|
-|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)|+|-|
-|...|?|?|
+|Supported feature | Java | ES6 |
+|--- |---|---|
+|JSON Producer| + | -   |
+|JSON Consumer| - | +   |
+|Validator for _mandatory_ rules| + | +   |
+|Validator for _immutable_ rules| + | +   |
+|Validator for _content_ rules| + | -   |
+|Validator for _update_ rules| + | -   |
+|Supports simple property names (e.g. ``responsibleUser``)| + | +   |
+|Supports nested property names (e.g. ``customer.address.city``)| + | +   |
+|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| + | +   |
+|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| + | -   |
+|...| ? | ?   |
 
 # Thoughts about possible extensions
 - DATE_FUTURE/PAST with _minDays_ and _maxDays_?
