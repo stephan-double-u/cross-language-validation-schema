@@ -4,21 +4,42 @@ JSON schema that specifies validation rules in a language independant manner to 
 An online, interactive JSON Schema validator can be found here: https://www.jsonschemavalidator.net/
 
 ## Table of Contents
-* [TL;DR](#tldr)
-* [Motivation](#motivation)
-* [Documentation](#documentation)
-  * [Close-to-life example](#close-to-life-example)
-  * [JSON structure](#json-structure)
-  * [Elementary constraints](#elementary-constraints)
-* [Implementations](#implementations)
-* [Thoughts about possible extensions](#thoughts-about-possible-extensions)
+- [TL;DR](#tldr)
+- [Motivation](#motivation)
+  - [Drawbacks of existing validation frameworks](#drawbacks-of-existing-validation-frameworks)
+  - [Required features of a flexible and expressive validation framework](#required-features-of-a-flexible-and-expressive-validation-framework)
+- [Documentation](#documentation)
+  - [Close-to-life example](#close-to-life-example)
+    - [Example objects](#example-objects)
+    - [Example validation rules](#example-validation-rules)
+  - [JSON structure](#json-structure)
+    - [Top-level content](#top-level-content)
+    - [Entity Type related validation rules](#entity-type-related-validation-rules)
+    - [Property related validation rules](#property-related-validation-rules)
+    - [Condition types and objects](#condition-types-and-objects)
+    - [Elementary constraints](#elementary-constraints)
+      - [EQUALS_ANY](#equalsany)
+      - [EQUALS_ANY_REF](#equalsanyref)
+      - [EQUALS_NONE](#equalsnone)
+      - [EQUALS_NONE_REF](#equalsnoneref)
+      - [EQUALS_NULL](#equalsnull)
+      - [EQUALS_NOT_NULL](#equalsnotnull)
+      - [REGEX_ANY](#regexany)
+      - [SIZE](#size)
+      - [RANGE](#range)
+      - [DATE_FUTURE](#datefuture)
+      - [DATE_PAST](#datepast)
+- [Implementations](#implementations)
+  - [Implementation status](#implementation-status)
+- [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
 # TL;DR
 The purpose of this _JSON Schema_ is to describe _complex validation rules_, independent of a specific 
 programming language. The resulting JSON documents are intended to be used in applications that involve multiple 
 components possibly written in different programming languages where the rules have to be validated in several 
-components, e.g. in a frontend written in ES6 and a backend written in Java. Nevertheless, an implementation for that
-schema can also be used usefully on its own e.g. in a Java backend.
+components, e.g. in a frontend written in ES6 and a backend written in Java.
+
+Nevertheless, an implementation for that schema can also be used usefully on its own e.g. in a Java backend.
 
 One objective is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
 validation rules, according to the motto "define once, validate everywhere".
@@ -26,13 +47,16 @@ validation rules, according to the motto "define once, validate everywhere".
 Of course this requires the implementation of generic validators as well as the implementation of JSON _producers_ resp. 
 JSON _consumers_ for valid JSON documents in the programming languages that are involved.
 
-E.g. with the [CLV Java implementation](https://github.com/stephan-double-u/cross-language-validation-java) 
-for this 
-schema a quite complex validation rule that involves conditions that are logically linked by AND and OR can be defined 
-like this: 
+As an example of what is possible, we assume we have this quite complex validation rule that involves conditions that are logically linked by AND and OR:
+
+> "The _animalUse_ property of a medical article (e.g. a _Diagnostic Video Colonoscope_) must not be changed if (a) it is
+assigned to a medical set, or (b) it has been used once for animals"
+
+With the [CLV Java implementation](https://github.com/stephan-double-u/cross-language-validation-java) 
+for this schema this validation rule can be defined like this: 
 ```java
 public class AnyClass {
-    static final ValidationRules<Article> articleRules = new ValidationRules<>(Article.class);
+    static final ValidationRules<Article> ARTICLE_RULES = new ValidationRules<>(Article.class);
     static {
         articleRules.immutable("animalUse",
             ConditionsTopGroup.OR(
@@ -51,12 +75,14 @@ public class AnyClass {
 This Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
 An application that uses this Java implementation can expose the JSON e.g. via a REST endpoint:
 
-    ValidationRules.serializeToJson(articleRules, otherRules);
+    ValidationRules.serializeToJson(ARTICLE_RULES);
 
 With the help of the [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) 
-a frontend can then check if a object property is immutable and e.g. should be displayed as _disabled_ like this:
+a frontend can then check if an object property is immutable and e.g. should be displayed as _disabled_ like this:
 ```javascript
+  // retrieved e.g. via GET /articles/12345
   article = {
+    "id": 12345,
     "animalUse": "true",
     "everUsed": "true",
     "medicalSetId": "S-123-456"
@@ -453,7 +479,7 @@ represented by different key/value pairs:
         }
         ```
     
-## Elementary constraints
+### Elementary constraints
 An elementary constraint is used as a _content constraint_ or within conditions for "related properties", i.e. it 
 is used as the _value of any constraint key_.
 It is an object consisting of one or more key/value pairs. 
@@ -461,7 +487,6 @@ It is an object consisting of one or more key/value pairs.
 The key of the first pair is _type_, its value is a string stating the type of the constraint. Each type can have 
 further type-specific key/value pairs.
 
-### EQUALS constraints
 #### EQUALS_ANY
 The EQUALS_ANY constraint checks whether the value of the associated property matches any of the values listed in the
 array named _values_. 
@@ -479,8 +504,9 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _date_ resp. _date-time_ format (according to 
-[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
+If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be 
+interpreted as such.
 
 #### EQUALS_ANY_REF
 With the EQUALS_ANY_REF constraint it is possible to compare the values of properties. It validates that the
@@ -500,11 +526,12 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _date_ resp. _date-time_ format (according to
-[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
-
 The type of the associated property must equal the type of the properties referenced by the property names listed in the
 array named _values_.
+
+If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+interpreted as such.
 
 #### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
@@ -523,8 +550,9 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _data_ resp. _data-time_ format (according to
-[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
+If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+interpreted as such.
 
 #### EQUALS_NONE_REF
 With the EQUALS_NONE_REF constraint it is possible to compare the _values of properties_. It validates that the
@@ -544,11 +572,12 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _date_ resp. _date-time_ format (according to
-[RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be interpreted as such.
-
 The type of the associated property must equal the type of the properties referenced by the property names listed in the
 array named _values_.
+
+If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+interpreted as such.
 
 #### EQUALS_NULL
 The EQUALS_NULL constraint checks whether the value of the associated property is _null_.
@@ -578,7 +607,7 @@ This constraint can be applied to properties of type
 - _array_
 - _object_
 
-### REGEX_ANY constraint
+#### REGEX_ANY
 The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
 expressions_ listed in the array named _values_.
 ```json
@@ -601,9 +630,9 @@ not use _inline modifiers_ (e.g. `(?i)`),
 (At least as long as the ES6 implementation does not use externals libraries to augment their build-in regex 
 capabilities, like e.g. [XRegExp](https://xregexp.com/))
 
-### SIZE constraint
-The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values of the keys
-_min_ resp. _max_. 
+#### SIZE
+The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values
+of the keys _min_ resp. _max_. 
 ```json
     {
       "type": "SIZE",
@@ -613,9 +642,9 @@ _min_ resp. _max_.
 ```
 
 This constraint can be applied to properties of type
-- _string_ - the size of a string corresponds to the number string characters.
-- _array_ - the size of an array corresponds to the number of array elements.
-- _object_ - the size of an object corresponds to the number of object keys.
+- _string_ : the size of a string corresponds to the number of string characters.
+- _array_ : the size of an array corresponds to the number of array elements.
+- _object_ : the size of an object corresponds to the number of object keys.
 
 At least one of the keys _min_ or _max_ must be specified. The other key is optional.
 
@@ -623,7 +652,7 @@ If both keys are specified, the _min-value_ must not be greater than the _max-va
 
 The values of the keys _min_ and _max_ must be > 0 (zero).
 
-### RANGE constraint
+#### RANGE
 The RANGE constraint checks whether the value of the associated property is within the range defined by the numeric 
 values of the keys _min_ and _max_.
 ```json
@@ -633,15 +662,12 @@ values of the keys _min_ and _max_.
       "max": 10
     }
 ```
-This constraint can be applied to properties of type
-- **TODO**
+This constraint can only be applied to properties of type _number_.
 
 At least one of the keys _min_ or _max_ must be specified. The other key is optional.
 
 If both keys are specified, the _min-value_ must not be greater than the _max-value_.
 
-
-### DATE constraints
 #### DATE_FUTURE
 The DATE_FUTURE constraint checks whether the value of the associated property is a date that is 0 or more days _in the 
 future_. The number of days is defined as value of the key _days_.
@@ -651,8 +677,9 @@ future_. The number of days is defined as value of the key _days_.
       "days": 0
     }
 ```
-This constraint can be applied to properties of type
-- **TODO**
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```2022-12-31```) 
+resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 #### DATE_PAST
 The DATE_PAST constraint checks whether the value of the associated property is a date that is 0 or more days _in the
@@ -663,14 +690,14 @@ past_. The number of days is defined as value of the key _days_.
       "days": 0
     }
 ```
-This constraint can be applied to properties of type
-- **TODO**
-
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```2022-12-31```)
+resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 # Implementations
 - [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
   Validator and a Producer for this schema in Java.
--[Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
+- [Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
   a Validator and a Consumer for this schema in ECMAScript 6.
 
 ## Implementation status
@@ -691,7 +718,7 @@ TODO
 |...| ? | ?   |
 
 # Thoughts about possible extensions
-- DATE_FUTURE/PAST with _minDays_ and _maxDays_?
+- DATE_FUTURE/PAST with _minDays_ and _maxDays_? Or is it better to allow RANGE for date and date-time too?
 - DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
 - Array index definitions with 'functions'?
   - e.g. foo[*]#sum, foo[*].bar[*].name#unique
@@ -701,7 +728,7 @@ TODO
     
     "article[*].price -> Range.max(1000)"
     
-- Array index definition 'last N elements' (e.g. [2L])?
+- Array index definition 'last N elements' (e.g. [-2])?
 
 
 
