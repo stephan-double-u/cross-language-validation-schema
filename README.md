@@ -96,10 +96,11 @@ Validation of input data plays a crucial role in almost any (web) app. Whereby t
 because the server should never trust the client-side. Of course client side validation is also important for a good 
 user experience.
 
-The idea for this JSON Schema was inspired by a web application that had _many_ non-trivial validation rules. The 
-front-end of this application was written in JavaScript (Angular), while the back-end was written in Java. Most of these
-validation rules should be utilized also on the client-side. On the one hand to provide good user guidance, on the other
-hand to avoid numerous client-server round trips:
+The idea for this JSON Schema was inspired by a web application that had _many_ non-trivial validation rules that 
+additionally depended on user permissions.
+The front-end of this application was written in JavaScript (Angular), while the back-end was written in Java. 
+Most of these validation rules should be utilized also on the client-side.
+On the one hand to provide good user guidance, on the other hand to avoid numerous client-server round trips:
 - For a _mandatory_ object property the corresponding form input field should be decorated with a visual indicator, and 
   the submit button should be disabled as long as the user didn't enter a value for this property.
 - For an _immutable_ (a.k.a. _read-only_) object property the corresponding form input field should be disabled.
@@ -694,6 +695,14 @@ This constraint can only be applied to properties of type _string_ that complies
 resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
+### Evaluation sequence
+TODO: More detailed description
+- First check all rules for a property with matching user permissions in the order in which they are defined.
+- If no rule evaluates to _true_, check all rules for the property WITHOUT permissions in the order in which they are 
+  defined.
+
+TODO: Example
+
 # Implementations
 - [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
   Validator and a Producer for this schema in Java.
@@ -718,16 +727,26 @@ TODO
 |...| ? | ?   |
 
 # Thoughts about possible extensions
-- DATE_FUTURE/PAST with _minDays_ and _maxDays_? Or is it better to allow RANGE for date and date-time too?
+- DATE_FUTURE/PAST with _minDays_ and _maxDays_?
+ 
+  E.g. to validate that a date is between 3 and 30 Days in the future.
+- DATE_FUTURE/PAST with _minHours_ and _maxHours_?
+
+  E.g. to validate that a date is at least 6 hours the future.
 - DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
-- Array index definitions with 'functions'?
-  - e.g. foo[*]#sum, foo[*].bar[*].name#unique
-  - Remark: min/max not needed, because e.g. the content constraint
-    
-    "article[*].price#max -> Range.max(1000)" is equivalent to
-    
-    "article[*].price -> Range.max(1000)"
-    
+- Allow RANGE for date and date-time too?
+
+  E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
+- RANGE_REF?
+
+  E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
+- REGEX_NONE?
+
+  E.g. to validate that a property value is not greater than another property value
+- Extend permissions constraint with ALL resp. NONE?
+- Array index definitions with 'functions'? E.g.
+  - foo[*].bar[*].name#unique
+  - foo[*]#sum, foo[*]#avg, foo[*]#min, foo[*]#max, foo[*]#count, foo[*]#same, ...
 - Array index definition 'last N elements' (e.g. [-2])?
 
 
