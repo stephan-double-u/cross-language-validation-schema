@@ -1,5 +1,5 @@
 {
-  "schema-version": "0.2",
+  "schema-version": "0.3",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -27,7 +27,7 @@
       "id": [
         {
           "permissions": {
-            "type": "ANY",
+            "type": "ALL",
             "values": [
               "aaa"
             ]
@@ -35,7 +35,7 @@
         },
         {
           "permissions": {
-            "type": "ANY",
+            "type": "NONE",
             "values": [
               "bbb"
             ]

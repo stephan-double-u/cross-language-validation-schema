@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schema-version": { "type": "string" , "enum": ["0.2"]},
+    "schema-version": { "type": "string" , "enum": ["0.3"]},
     "mandatoryRules": { "$ref": "#/definitions/typeRules" },
     "immutableRules": { "$ref": "#/definitions/typeRules" },
     "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
@@ -92,7 +92,7 @@
     "permissions": {
       "type": "object",
       "properties": {
-        "type": { "type": "string" , "enum": ["ANY"]},
+        "type": { "type": "string" , "enum": ["ALL", "ANY", "NONE"]},
         "values" : {
           "type": "array",
           "items": { "type": "string" }
