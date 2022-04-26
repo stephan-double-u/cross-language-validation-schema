@@ -36,9 +36,9 @@ An online, interactive JSON Schema validator for this schema can be found here: 
   - [Consumer](#consumer)
   - [Validator](#validator)
     - [Evaluation sequence](#evaluation-sequence)
+    - [Validation error codes](#validation-error-codes)
 - [Implementations](#implementations)
   - [Implementation status](#implementation-status)
-  - [Validation error codes](#validation-error-codes)
 - [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
 # TL;DR
@@ -300,6 +300,7 @@ represented by different key-value pairs.
 The first key-value pair with the key _constraint_ is used for conditions that relate to the _content of the 
 property itself_ for which the validation rule is defined for. The value is an 
 [elementary constraint object](#Elementary-constraints) that defines the allowed content of this property. 
+
 This type of condition _is required for **content** and **update** rules_ and _not allowed for 
 **mandatory** and **immutable** ones_.
 > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
@@ -324,7 +325,9 @@ This type of condition _is required for **content** and **update** rules_ and _n
 ### Permissions constraint
 The second key-value pair with the key _permissions_ is used to **restrict the validity of the validation rule** to 
 certain _user permissions_. The value is an object with 2 keys: _type_ with value _ALL_, _ANY_ or _NONE_ and 
-_values_ with a list of allowed permission names. This pair is optional.
+_values_ with a list of allowed permission names.
+
+This pair is optional.
 
 A missing permissions constraint means, that the validation rule should always be validated, regardless of any 
 permissions the user might have.
@@ -364,7 +367,9 @@ does not have any permission from the _values_ array.
 Often the decision whether to apply a validation rule depends on the state of _other properties_.
 Or even on the state of the same properties, in case of changing the value of the property during an update.
 The expectations about the condition of these properties are described in a third key-value pair.
-   
+
+This pair _is required for **update** rules_.
+
 If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, a _OR 
 operation_ or even both.
 

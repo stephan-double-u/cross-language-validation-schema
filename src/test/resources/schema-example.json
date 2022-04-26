@@ -1,5 +1,5 @@
 {
-  "schema-version": "0.3",
+  "schema-version": "0.4",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -115,10 +115,10 @@
           }
         }
       ],
-      "articleList[0].name": [
+      "articleList[1,2].name": [
         {
           "condition": {
-            "property": "articleArray[0].name",
+            "property": "intArray[*].name#sum",
             "constraint": {
               "type": "EQUALS_NULL"
             }
@@ -424,7 +424,7 @@
           }
         }
       ],
-      "stringList[0]": [
+      "stringList[0-1]#distinct": [
         {
           "constraint": {
             "type": "EQUALS_ANY",
@@ -440,7 +440,7 @@
           "constraint": {
             "type": "EQUALS_ANY_REF",
             "values": [
-              "articleList[0].name"
+              "articleList[0-2].name#distinct"
             ]
           }
         }

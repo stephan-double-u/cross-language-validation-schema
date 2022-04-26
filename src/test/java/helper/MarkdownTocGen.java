@@ -18,7 +18,7 @@ public class MarkdownTocGen {
                 .forEach(heading -> buildLink(heading));
     }
 
-    private static String spaces = "                                                                                  ";
+    private static String spaces = " ".repeat(100);
     private static void buildLink(String heading) {
         int level = heading.split(" ")[0].length() - 1;
         String text = heading.substring(level + 2);
