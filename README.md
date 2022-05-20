@@ -154,6 +154,13 @@ properties like _id_, _createdBy_ etc. are omitted:
     "number": "BF-123"
   }
 ```
+- AccessoryAmount
+```json
+  {
+    "accessoryNumber": "BF-123",
+    "amount": "3"
+  }
+```
 - Article
 ```json
   {
@@ -164,7 +171,7 @@ properties like _id_, _createdBy_ etc. are omitted:
     "everUsed": "false",
     "medicalSetId": null,
     "responsibleUser": null,
-    "accessories": [
+    "accessoriesAmount": [
     ]
   }
 ```
@@ -273,7 +280,10 @@ Validation rules for a single property of an entity type are defined by a key-va
     - > "medicalSets[2/1].articles[0/2].animalUse"
   - or _a star (\*)_ as a shortcut for the interval definition [0/1], e.g.
     - > "medicalSets[\*].articles[\*].animalUse"
-
+  - TODO: describe terminal aggragate functions #sum and #distinct
+    - > "medicalSets[\*].articles[\*].accessoriesAmount[\*].amount#sum"
+    - > "medicalSets[\*].articles[\*].accessoriesAmount[\*].accessoryNumber#distinct"
+ 
 All index values are _zero-based_.
 
 **The value of the pair** is an _array_ that may contain different types of _condition objects_.
@@ -288,7 +298,7 @@ Possible mandatory rules for the entity type `reservation`:
     {
       "status": [],
       "customer.address.city": [],
-      "medicalSets[0].articles[0].animalUse": []
+      "medicalSets[*].articles[*].animalUse": []
     }
 ```
 
@@ -796,7 +806,7 @@ TODO Document status here?
 |Supports simple property names (e.g. ``responsibleUser``)| + | +   |
 |Supports nested property names (e.g. ``customer.address.city``)| + | +   |
 |Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| + | +   |
-|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| + | -   |
+|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| + | +   |
 |...| ? | ?   |
 
 # Thoughts about possible extensions
