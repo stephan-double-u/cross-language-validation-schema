@@ -1,5 +1,5 @@
 {
-  "schema-version": "0.4",
+  "schema-version": "0.5",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -13,6 +13,10 @@
                 "2022-01-02T00:00Z"
               ]
             }
+          },
+          "errorCodeControl": {
+            "useType": "AS_SUFFIX",
+            "code": "#suffix"
           }
         },
         {
@@ -191,17 +195,18 @@
                     }
                   },
                   {
-                    "property": "someInt",
-                    "constraint": {
-                      "type": "RANGE",
-                      "max": 999
-                    }
-                  },
-                  {
                     "property": "someLong",
                     "constraint": {
                       "type": "RANGE",
                       "max": 9007199254740991
+                    }
+                  },
+                  {
+                    "property": "someDate",
+                    "constraint": {
+                      "type": "RANGE",
+                      "min": "2022-01-01",
+                      "max": "2022-01-01"
                     }
                   },
                   {
@@ -413,6 +418,10 @@
               "min": 1,
               "max": 100
             }
+          },
+          "errorCodeControl": {
+            "useType": "AS_SUFFIX",
+            "code": "#suffix"
           }
         },
         {
@@ -606,6 +615,10 @@
                 "FOUR"
               ]
             }
+          },
+          "errorCodeControl": {
+            "useType": "AS_REPLACEMENT",
+            "code": "ReplacementForDefaultErrorCode(CouldBeErrorMessageAsWell)"
           }
         }
       ]

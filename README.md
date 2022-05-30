@@ -1,7 +1,7 @@
-# Cross Language Validation (CLV) Schema - V0.4
+# Cross Language Validation (CLV) Schema - V0.5
 JSON schema that specifies validation rules in a language independant manner to enable cross language validation.
 
-An online, interactive JSON Schema validator for this schema can be found here: https://www.jsonschemavalidator.net/s/zdmcpby2
+An online, interactive JSON Schema validator for this schema can be found here: https://www.jsonschemavalidator.net/s/GGluDto8
 
 ## Table of Contents
 - [TL;DR](#tldr)
@@ -280,7 +280,7 @@ Validation rules for a single property of an entity type are defined by a key-va
     - > "medicalSets[2/1].articles[0/2].animalUse"
   - or _a star (\*)_ as a shortcut for the interval definition [0/1], e.g.
     - > "medicalSets[\*].articles[\*].animalUse"
-  - TODO: describe terminal aggragate functions #sum and #distinct
+  - TODO: describe terminal aggregate functions #sum and #distinct
     - > "medicalSets[\*].articles[\*].accessoriesAmount[\*].amount#sum"
     - > "medicalSets[\*].articles[\*].accessoriesAmount[\*].accessoryNumber#distinct"
  
@@ -308,7 +308,7 @@ represented by different key-value pairs.
 
 ### Content constraint
 The first key-value pair with the key _constraint_ is used for conditions that relate to the _content of the 
-property itself_ for which the validation rule is defined for. The value is an 
+property itself_ for which the validation rule is defined. The value is an 
 [elementary constraint object](#Elementary-constraints) that defines the allowed content of this property. 
 
 This type of condition _is required for **content** and **update** rules_ and _not allowed for 
@@ -524,7 +524,20 @@ this third key-value pair:
       }
     }
     ```
-    
+
+### Error code control
+TODO describe in more detail
+If a validation rule is not met, an error code is generated as defined in chapter.
+[Validation error codes](#validation-error-codes)
+```json
+{
+          "errorCodeControl": {
+            "useType": "AS_SUFFIX",
+            "code": "#suffix"
+          }
+}
+```
+
 ## Elementary constraints
 An elementary constraint is used as a _content constraint_ or within conditions for "related properties", i.e. it 
 is used as the _value of any constraint key_.
@@ -546,7 +559,7 @@ array named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- _string_,
+- _string_
 - _number_
 - _boolean_
 
@@ -568,7 +581,7 @@ named _values_.
     }
 ```
 This constraint can be applied to properties of type
-- _string_,
+- _string_
 - _number_
 - _boolean_
 
@@ -686,7 +699,6 @@ of the keys _min_ resp. _max_.
       "max": 10
     }
 ```
-
 This constraint can be applied to properties of type
 - _string_ : the size of a string corresponds to the number of string characters.
 - _array_ : the size of an array corresponds to the number of array elements.
@@ -708,7 +720,11 @@ values of the keys _min_ and _max_.
       "max": 10
     }
 ```
-This constraint can only be applied to properties of type _number_.
+This constraint can be applied to properties of type
+- _number_
+- _string_ with the restriction that the string complies to the _date_ 
+(e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 At least one of the keys _min_ or _max_ must be specified. The other key is optional.
 
@@ -769,7 +785,7 @@ public class ValidationRules<T> {
 Must provide an API to accept the JSON with the serialized validation rules.
 > E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides function:
 ```javascript
-export function setValidationRules(rules)
+export function setValidationRules(rules) {}
 ```
 
 ## Validator
@@ -796,41 +812,53 @@ TODO: Describe
 TODO Document status here?
 
 |Supported feature | Java | ES6 |
-|--- |---|---|
-|JSON Producer| + | -   |
-|JSON Consumer| - | +   |
-|Validator for _mandatory_ rules| + | +   |
-|Validator for _immutable_ rules| + | +   |
-|Validator for _content_ rules| + | +   |
-|Validator for _update_ rules| + | +   |
-|Supports simple property names (e.g. ``responsibleUser``)| + | +   |
-|Supports nested property names (e.g. ``customer.address.city``)| + | +   |
-|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| + | +   |
-|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| + | +   |
-|...| ? | ?   |
+|--- |------|-----|
+|JSON Producer| +    | -   |
+|JSON Consumer| -    | +   |
+|Validator for _mandatory_ rules| +    | +   |
+|Validator for _immutable_ rules| +    | +   |
+|Validator for _content_ rules| +    | +   |
+|Validator for _update_ rules| +    | +   |
+|Supports simple property names (e.g. ``responsibleUser``)| +    | +   |
+|Supports nested property names (e.g. ``customer.address.city``)| +    | +   |
+|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| +    | +   |
+|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| +    | +   |
+|Supports terminal aggregate functions| -    | -   |
+|...| ?    | ?   |
 
 # Thoughts about possible extensions
 - DATE_FUTURE/PAST with _minDays_ and _maxDays_?
  
   E.g. to validate that a date is between 3 and 30 Days in the future.
+
 - DATE_FUTURE/PAST with _minHours_ and _maxHours_?
 
   E.g. to validate that a date is at least 6 hours the future.
+
 - DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
+
 - Allow RANGE for date and date-time too?
 
   E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
+
 - RANGE_REF?
 
   E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
+
 - REGEX_NONE?
 
   E.g. to validate that a property value is not greater than another property value
+
 - Extend permissions constraint with ALL resp. NONE?
-- Array index definitions with 'functions'? E.g.
-  - foo[*].bar[*].name#unique
-  - foo[*]#sum, foo[*]#avg, foo[*]#min, foo[*]#max, foo[*]#count, foo[*]#same, ...
+
+- More terminal aggregate functions? E.g.
+  - foo[*]#count, foo[*]#avg, foo[*]#min, foo[*]#max, foo[*]#same, ...
+
 - Array index definition 'last N elements' (e.g. [-2])?
+
+- Support for 'big integer?'
+
+  see https://golb.hplar.ch/2019/01/js-bigint-json.html
 
 
 
