@@ -849,8 +849,6 @@ TODO Document status here?
 
   E.g. to validate that a property value is not greater than another property value
 
-- Extend permissions constraint with ALL resp. NONE?
-
 - More terminal aggregate functions? E.g.
   - foo[*]#count, foo[*]#avg, foo[*]#min, foo[*]#max, foo[*]#same, ...
 
