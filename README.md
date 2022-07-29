@@ -1,7 +1,7 @@
 # Cross Language Validation (CLV) Schema - V0.5
-JSON schema that specifies validation rules in a language independant manner to enable cross language validation.
-
-An online, interactive JSON Schema validator for this schema can be found here: https://www.jsonschemavalidator.net/s/GGluDto8
+JSON schema that specifies validation rules in a language independant manner to enable cross language validation.<br>
+An online, interactive JSON Schema validator for this schema can be found here: 
+https://www.jsonschemavalidator.net/s/GGluDto8
 
 ## Table of Contents
 - [TL;DR](#tldr)
@@ -19,6 +19,7 @@ An online, interactive JSON Schema validator for this schema can be found here: 
     - [Content constraint](#content-constraint)
     - [Permissions constraint](#permissions-constraint)
     - [Constraints about referenced properties](#constraints-about-referenced-properties)
+    - [Error code control](#error-code-control)
   - [Elementary constraints](#elementary-constraints)
     - [EQUALS_ANY](#equalsany)
     - [EQUALS_ANY_REF](#equalsanyref)
@@ -58,8 +59,10 @@ resp. JSON _consumers_ for valid JSON documents in the programming languages tha
 As an example of what is possible, we assume we have this quite complex validation rule that involves conditions that 
 are logically linked by AND and OR:
 
-> "The _animalUse_ property of a medical article (e.g. a _Diagnostic Video Colonoscope_) must not be changed if (a) it 
-is assigned to a medical set, or (b) it has been used once for animals"
+> The _animalUse_ property of an article must not be changed if<br>
+> a) it is assigned to a medical set<br>
+> OR<br>
+> b) it has been used once for animals - i.e. the _everLeftWarehouse_ AND _animalUse_ properties are both _true_.
 
 With the [CLV Java implementation](https://github.com/stephan-double-u/cross-language-validation-java) 
 for this schema this validation rule can be defined like this: 
@@ -70,35 +73,35 @@ public class AnyClass {
         articleRules.immutable("animalUse",
             ConditionsTopGroup.OR(
                     ConditionsGroup.AND(
-                            Condition.of("animalUse", Equals.any(TRUE)),
-                            Condition.of("everUsed", Equals.any(TRUE))
-                    ),
+                            Condition.of("medicalSetId", Equals.notNull())),
                     ConditionsGroup.AND(
-                            Condition.of("medicalSetId", Equals.notNull())
-                    )
-            )
-        );
+                            Condition.of("animalUse", Equals.any(TRUE)),
+                            Condition.of("everLeftWarehouse", Equals.any(TRUE)))));
     }
 }
 ```
 This Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
 An application that uses this Java implementation can expose the JSON e.g. via a REST endpoint:
 
-        ValidationRules.serializeToJson(ARTICLE_RULES);
+    ValidationRules.serializeToJson(ARTICLE_RULES);
 
-With the help of the [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) 
+With the help of the 
+[CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) 
 a frontend can then check if an object property is immutable and e.g. should be displayed as _disabled_ like this:
 ```javascript
 // retrieved e.g. via GET /articles/12345
 article = {
   "id": 12345,
   "animalUse": "true",
-  "everUsed": "true",
+  "everLeftWarehouse": "true",
   "medicalSetId": "S-123-456"
   // other properties omitted
 }
 animalUseCheckbox.disabled = isPropertyImmutable("article", "animalUse", article);
 ```
+
+&rarr; See the [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) as a comprehensive 
+example of how to use the framework.
 
 # Motivation
 Validation of input data plays a crucial role in almost any (web) app. Whereby the server-side validation is a must, 
@@ -136,12 +139,12 @@ It should be possible to define validation rules
 - that may depend on individual user permissions
 
 # Close-to-life example
-The documentation of all kinds of possible validation rules is _based on this close-to-life example_ to make the exemplary 
-rules more descriptive.
+The documentation of all kinds of possible validation rules is _based on this close-to-life example_ to make the 
+exemplary rules more descriptive.
 
 Let's say we work for a company that rents _medical equipment_. Each medical _article_ may contain several 
 _accessories_. Articles are grouped in _medical sets_. The equipment is stored in warehouses and delivered to customers 
-locations. Staff members schedule _reservations_ on behalf of their customers.
+locations, e.g. hospital or animal clinics. Staff members schedule _reservations_ on behalf of their customers.
 
 ## Example objects
 These are example objects for the aforementioned entity types with some of their properties. The more technical 
@@ -168,7 +171,7 @@ properties like _id_, _createdBy_ etc. are omitted:
     "number": "DVC-H123T/Z",
     "status": "ACTIVE",
     "animalUse": "true",
-    "everUsed": "false",
+    "everLeftWarehouse": "false",
     "medicalSetId": null,
     "responsibleUser": null,
     "accessoriesAmount": [
@@ -207,14 +210,16 @@ properties like _id_, _createdBy_ etc. are omitted:
 
 ## Example validation rules
 A fictitious requirements document could mention validation rules like this:
-1. Only managers are allowed to set customer level to PLATINUM.
-2. Allowed article status transitions are: NEW -> ACTIVE, NEW -> INACTIVE, ACTIVE -> INACTIVE / DECOMMISSIONED, INACTIVE 
+1. If an article is delivered for the first time, it has to be flagged as such (property _everLeftWarehouse_).
+   This flag must never be reset.
+2. The _animalUse_ property of an article must not be changed if
+   a) it is assigned to a medical set, or
+   b) it has been used once for animals (i.e. the _everLeftWarehouse_ and _animalUse_ flags have been set).
+3. Only managers are allowed to set customer level to PLATINUM.
+4. Allowed article status transitions are: NEW -> ACTIVE, NEW -> INACTIVE, ACTIVE -> INACTIVE / DECOMMISSIONED, INACTIVE 
    -> ACTIVE / DECOMMISSIONED".
-3. An article must have a responsible user if the article status is not NEW, and the article is not assigned to a 
+5. An article must have a responsible user if the article status is not NEW, and the article is not assigned to a 
    MedicalSet.
-4. If an article is used resp. delivered for the first time, it has to be flagged as such. This flag must never be reset.
-5. The _animalUse_ property of an article must not be changed if a) it is assigned to a medical set, or b) it has been 
-   used once for animals.
 6. The reservation start date must be 3 days in the future.
 7. The reservation end date must be after the start date.
 8. A reservation not in status PREPARATION must contain 1 to 3 medical sets. If the customer has status PLATINUM, it may
@@ -383,16 +388,11 @@ This pair _is required for **update** rules_.
 If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, a _OR 
 operation_ or even both.
 
-Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to define logical expressions like
-
-``a AND b AND c AND d``,
-
-``a OR b OR c OR d``,
-
-``a AND b OR c AND d``,
-
-``(a OR b) AND (c OR d)``
-
+Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to define logical expressions like<br>
+``a AND b AND c AND d``,<br>
+``a OR b OR c OR d``,<br>
+``a AND b OR c AND d``,<br>
+``(a OR b) AND (c OR d)``<br>
 and similar variants.
 
 Depending on the _number of these conditions_ and _how they are logically connected_, there are _three variants_ of 
@@ -408,10 +408,10 @@ this third key-value pair:
     { 
       "immutableRules": {
         "article": {
-          "everUsed": [
+          "everLeftWarehouse": [
             {
               "condition": {
-                "property": "everUsed",
+                "property": "everLeftWarehouse",
                 "constraint": {
                   "type": "EQUALS_ANY",
                   "values": [
@@ -441,7 +441,7 @@ this third key-value pair:
                 "operator": "AND",
                 "conditions": [
                   {
-                    "property": "everUsed",
+                    "property": "everLeftWarehouse",
                     "constraint": {
                       "type": "EQUALS_ANY",
                       "values": [
@@ -497,7 +497,7 @@ this third key-value pair:
                     "operator": "AND",
                     "conditions": [
                       {
-                        "property": "everUsed",
+                        "property": "everLeftWarehouse",
                         "constraint": {
                           "type": "EQUALS_ANY",
                           "values": [
@@ -704,15 +704,21 @@ This constraint can be applied to properties of type
 - _array_ : the size of an array corresponds to the number of array elements.
 - _object_ : the size of an object corresponds to the number of object keys.
 
-At least one of the keys _min_ or _max_ must be specified. The other key is optional.
-
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.
-
+At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 The values of the keys _min_ and _max_ must be > 0 (zero).
 
 ### RANGE
-The RANGE constraint checks whether the value of the associated property is within the range defined by the numeric 
-values of the keys _min_ and _max_.
+The RANGE constraint checks whether the value of the associated property is within the range defined by the values of 
+the keys _min_ and _max_.
+
+This constraint can be applied to properties of type
+- _number_
+- _string_  - as long as the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ 
+(e.g. ```2022-12-31T23:59:59Z```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Accordingly, the values of the keys _min_ and _max_ must have the same type, i.e. either _number_
 ```json
     {
       "type": "RANGE",
@@ -720,11 +726,15 @@ values of the keys _min_ and _max_.
       "max": 10
     }
 ```
-This constraint can be applied to properties of type
-- _number_
-- _string_ with the restriction that the string complies to the _date_ 
-(e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+or _date_ resp. _date-time_ complient _string_.
+```json
+    {
+      "type": "RANGE",
+      "min": "2022-01-01",
+      "max": "2022-12-31"
+    }
+```
 
 At least one of the keys _min_ or _max_ must be specified. The other key is optional.
 
@@ -757,10 +767,12 @@ resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 # Requirements for the implementers
-An implementation of this scheme must meet the following requirements. These requirements depend on which part is 
+An implementation of this schema must meet the following requirements. These requirements depend on which part is 
 implemented.
 
 ## Producer
+TODO
+
 Must provide an API to define all types of validation rules.
 > E.g. with [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
   a mandatory rule with dependencies to other properties (see example rule 3) can be defined like this:
@@ -782,6 +794,8 @@ public class ValidationRules<T> {
 ```
 
 ## Consumer
+TODO
+
 Must provide an API to accept the JSON with the serialized validation rules.
 > E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides function:
 ```javascript
@@ -793,6 +807,7 @@ TODO: Describe requirements
 
 ### Evaluation sequence
 TODO: Describe in more detail
+
 - First check all rules for a property with matching user permissions **in the order in which they are defined**.
 - If no rule evaluates to _true_, check all rules for the property WITHOUT permissions **in the order in which they are 
   defined**.
@@ -823,43 +838,35 @@ TODO Document status here?
 |Supports nested property names (e.g. ``customer.address.city``)| +    | +   |
 |Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| +    | +   |
 |Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| +    | +   |
-|Supports terminal aggregate functions| -    | -   |
+|Supports terminal aggregate functions| +    | +   |
 |...| ?    | ?   |
 
 # Thoughts about possible extensions
-- DATE_FUTURE/PAST with _minDays_ and _maxDays_?
- 
-  E.g. to validate that a date is between 3 and 30 Days in the future.
+- DATE_RANGE with _minDays_ and _maxDays_ for relative time ranges?<br>
+  E.g. to validate that a date is between 3 days in the past and 30 Days in the future.
 
-- DATE_FUTURE/PAST with _minHours_ and _maxHours_?
+- DATE_FUTURE/PAST with _hours_?<br>
+  E.g. to validate that a date is at least 6 hours in the future.
 
-  E.g. to validate that a date is at least 6 hours the future.
+- DATE_WEEKDAY_ANY with _values_ `["MONDAY", ...]`?
 
-- DATE_WEEKDAY_ANY with _values_ ["MONDAY", ...]}?
+- RANGE_REF?<br>
+  E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>
+  or `"min": "dateProp"`, to validate that a date is not before the date of 'dateProp'
 
-- Allow RANGE for date and date-time too?
+- REGEX_NONE?<br>
+  E.g. to validate that a property value not match a regex
 
-  E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
+- More terminal aggregate functions?<br>
+  E.g. `foo[*]#min, foo[*]#max, foo[*]#avg, foo[*]#same, foo[*]increasing, ...`
 
-- RANGE_REF?
+- Array index definition 'last N elements' (e.g. `[<2]`)?
 
-  E.g. to validate that a date is between '2022-12-01' and '2022-12-21'
-
-- REGEX_NONE?
-
-  E.g. to validate that a property value is not greater than another property value
-
-- More terminal aggregate functions? E.g.
-  - foo[*]#count, foo[*]#avg, foo[*]#min, foo[*]#max, foo[*]#same, ...
-
-- Array index definition 'last N elements' (e.g. [-2])?
-
-- Support for 'big integer?'
-
+- Support for 'big integer?'<br>
   see https://golb.hplar.ch/2019/01/js-bigint-json.html
 
+- Support for 'big decimal?'<br>
+  see https://stackoverflow.com/questions/16742578/bigdecimal-in-javascript
 
-
-
-
-
+- Support for recursive properties?<br>
+  E.g. for chapters with (sub-)chapters etc. Syntax?: `object[R].name"` resp. `"chapters\[*][R].name"?`
