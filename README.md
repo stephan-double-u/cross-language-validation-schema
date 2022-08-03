@@ -1,7 +1,7 @@
-# Cross Language Validation (CLV) Schema - V0.5
-JSON schema that specifies validation rules in a language independant manner to enable cross language validation.<br>
+# Cross Language Validation (CLV) Schema - V0.6
+JSON schema that specifies validation rules in a language independent manner to enable cross language validation.<br>
 An online, interactive JSON Schema validator for this schema can be found here: 
-https://www.jsonschemavalidator.net/s/GGluDto8
+https://www.jsonschemavalidator.net/s/cDno0Wh6
 
 ## Table of Contents
 - [TL;DR](#tldr)
@@ -30,8 +30,10 @@ https://www.jsonschemavalidator.net/s/GGluDto8
     - [REGEX_ANY](#regexany)
     - [SIZE](#size)
     - [RANGE](#range)
-    - [DATE_FUTURE](#datefuture)
-    - [DATE_PAST](#datepast)
+    - [FUTURE_DAYS](#futuredays)
+    - [PAST_DAYS](#pastdays)
+    - [PERIOD_DAYS](#perioddays)
+    - [WEEKDAY_ANY](#weekdayany)
 - [Requirements for the implementers](#requirements-for-the-implementers)
   - [Producer](#producer)
   - [Consumer](#consumer)
@@ -228,7 +230,7 @@ A fictitious requirements document could mention validation rules like this:
 # Documentation JSON structure
 ## Top-level content
 A valid JSON contains _5 key-value_ pairs:
-- _schema-version_ specifies the version of the JSON schema in use.
+- _schemaVersion_ specifies the version of the JSON schema in use.
 - _mandatoryRules_ is an object that contains a key-value pair for each _entity type_ that has validation rules 
   regarding mandatory properties.
 - _immutableRules_ is an object that contains a key-value pair for each _entity type_ that has validation rules 
@@ -242,7 +244,7 @@ A valid JSON contains _5 key-value_ pairs:
 Thus, the most minimal valid JSON file (i.e. a file that does not contain any validation rule at all) look like this:
 ```json
 {
-  "schema-version": "0.2",
+  "schemaVersion": "0.6",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
@@ -541,14 +543,14 @@ If a validation rule is not met, an error code is generated as defined in chapte
 ## Elementary constraints
 An elementary constraint is used as a _content constraint_ or within conditions for "related properties", i.e. it 
 is used as the _value of any constraint key_.
-It is an object consisting of one or more key-value pairs. 
-
+It is an object consisting of one or more key-value pairs.<br>
 The key of the first pair is _type_, its value is a string stating the type of the constraint. Each type can have 
 further type-specific key-value pairs.
 
 ### EQUALS_ANY
 The EQUALS_ANY constraint checks whether the value of the associated property matches any of the values listed in the
-array named _values_. 
+array named _values_.<br>
+Example:
 ```json
     {
       "type": "EQUALS_ANY",
@@ -563,14 +565,15 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be 
 interpreted as such.
 
 ### EQUALS_ANY_REF
 With the EQUALS_ANY_REF constraint it is possible to compare the values of properties. It validates that the
 value of the associated property equals any of the property values referenced by the property names listed in the array 
-named _values_.
+named _values_.<br>
+Example:
 ```json
     {
       "type": "EQUALS_ANY_REF",
@@ -588,13 +591,14 @@ This constraint can be applied to properties of type
 The type of the associated property must equal the type of the properties referenced by the property names listed in the
 array named _values_.
 
-If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
 interpreted as such.
 
 ### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
-in the array named _values_.
+in the array named _values_.<br>
+Example:
 ```json
     {
       "type": "EQUALS_NONE",
@@ -609,14 +613,15 @@ This constraint can be applied to properties of type
 - _number_
 - _boolean_
 
-If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
 interpreted as such.
 
 ### EQUALS_NONE_REF
 With the EQUALS_NONE_REF constraint it is possible to compare the _values of properties_. It validates that the
 value of the associated property does _not match_ any of the property values referenced by the property names listed in 
-the array named _values_.
+the array named _values_.<br>
+Example:
 ```json
     {
       "type": "EQUALS_NONE_REF",
@@ -632,9 +637,8 @@ This constraint can be applied to properties of type
 - _boolean_
 
 The type of the associated property must equal the type of the properties referenced by the property names listed in the
-array named _values_.
-
-If the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+array named _values_.<br>
+If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
 interpreted as such.
 
@@ -668,7 +672,8 @@ This constraint can be applied to properties of type
 
 ### REGEX_ANY
 The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
-expressions_ listed in the array named _values_.
+expressions_ listed in the array named _values_.<br>
+Example:
 ```json
     {
       "type": "REGEX_ANY",
@@ -691,7 +696,8 @@ capabilities, like e.g. [XRegExp](https://xregexp.com/))
 
 ### SIZE
 The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values
-of the keys _min_ resp. _max_. 
+of the keys _min_ resp. _max_.<br>
+Example:
 ```json
     {
       "type": "SIZE",
@@ -706,19 +712,18 @@ This constraint can be applied to properties of type
 
 At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
-The values of the keys _min_ and _max_ must be > 0 (zero).
+The values of the keys _min_ and _max_ must be **> 0** (zero).
 
 ### RANGE
-The RANGE constraint checks whether the value of the associated property is within the range defined by the values of 
-the keys _min_ and _max_.
-
+The RANGE constraint checks whether the value of the associated property is within the range defined by the values of the keys _min_ and _max_.<br>
 This constraint can be applied to properties of type
 - _number_
-- _string_  - as long as the string complies to the _date_ (e.g. ```2022-12-31```) resp. _date-time_ 
-(e.g. ```2022-12-31T23:59:59Z```) format
+- _string_  - as long as the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ 
+(e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-Accordingly, the values of the keys _min_ and _max_ must have the same type, i.e. either _number_
+Accordingly, the values of the keys _min_ and _max_ must have the same type, i.e. either _number_ or _date_ resp. _date-time_ complient _string_.<br>
+Example 1:
 ```json
     {
       "type": "RANGE",
@@ -726,8 +731,7 @@ Accordingly, the values of the keys _min_ and _max_ must have the same type, i.e
       "max": 10
     }
 ```
-
-or _date_ resp. _date-time_ complient _string_.
+Example 2:
 ```json
     {
       "type": "RANGE",
@@ -736,42 +740,102 @@ or _date_ resp. _date-time_ complient _string_.
     }
 ```
 
-At least one of the keys _min_ or _max_ must be specified. The other key is optional.
-
+At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 If both keys are specified, the _min-value_ must not be greater than the _max-value_.
 
-### DATE_FUTURE
-The DATE_FUTURE constraint checks whether the value of the associated property is a date that is 0 or more days _in the 
-future_. The number of days is defined as value of the key _days_.
+### FUTURE_DAYS
+The FUTURE_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the future_.<br>
+The number of days are defined as values of the keys _min_ and _max_.<br>
+Example:
 ```json
     {
-      "type": "DATE_FUTURE",
-      "days": 0
+      "type": "FUTURE_DAYS",
+      "min": 0,
+      "max": 90
     }
 ```
-This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```2022-12-31```) 
-resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```) 
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-### DATE_PAST
-The DATE_PAST constraint checks whether the value of the associated property is a date that is 0 or more days _in the
-past_. The number of days is defined as value of the key _days_.
+The key _min_ is mandatory.<br>
+The key _max_ is optional.<br>
+The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+
+### PAST_DAYS
+The PAST_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the past_.<br>
+The number of days are defined as values of the keys _min_ and _max_.<br>
+Example:
 ```json
     {
-      "type": "DATE_PAST",
-      "days": 0
+      "type": "PAST_DAYS",
+      "min": 0,
+      "max": 365
     }
 ```
-This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```2022-12-31```)
-resp. _date-time_ (e.g. ```2022-12-31T23:59:59Z```) format
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+The key _min_ is mandatory.<br>
+The key _max_ is optional.<br>
+The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+
+### PERIOD_DAYS
+The PERIOD_DAYS constraint checks whether the value of the associated property is a date that is 0 or more days _in the
+past_. The number of days is defined as value of the key _days_.<br>
+Example:
+```json
+    {
+      "type": "PERIOD_DAYS",
+      "min": -365,
+      "max": 365
+    } 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
+If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+The values of the keys _min_ and _max_ must be **>= 0** (zero).
+
+
+### WEEKDAY_ANY
+The WEEKDAY_ANY constraint checks whether the value of the associated property is a date that matches any of the values
+listed in the array named _days_.<br>
+Example:
+```json
+    {
+      "type": "WEEKDAY_ANY",
+      "days": ["SATURDAY", "SUNDAY", "null"]
+    } 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+The array may contain several weekday names from this list:
+- "MONDAY",
+- "TUESDAY"
+- "WEDNESDAY"
+- "THURSDAY"
+- "FRIDAY"
+- "SATURDAY"
+- "SUNDAY"
+
+In order to allow the associated property to be _null_ as well, the string "null" (including Quotes!) can be added to the array.<br>
+The array must contain at least one value.
+
 
 # Requirements for the implementers
 An implementation of this schema must meet the following requirements. These requirements depend on which part is 
 implemented.
 
 ## Producer
-TODO
+TODO: Describe requirements
 
 Must provide an API to define all types of validation rules.
 > E.g. with [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
@@ -779,8 +843,7 @@ Must provide an API to define all types of validation rules.
 ```java
 final ValidationRules<Article> rules = new ValidationRules<>(Article.class);
 rules.mandatory("responsibleUser",
-        Condition.of("status", Equals.none("NEW")),
-        Condition.of("medicalSetId", Equals.null_()));
+        Condition.of("status", Equals.none("NEW")));
 ```
 
 Must provide an API to serialize the validation rules zero or more entity types to JSON.
@@ -794,7 +857,7 @@ public class ValidationRules<T> {
 ```
 
 ## Consumer
-TODO
+TODO: Describe requirements
 
 Must provide an API to accept the JSON with the serialized validation rules.
 > E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides function:
@@ -805,17 +868,34 @@ export function setValidationRules(rules) {}
 ## Validator
 TODO: Describe requirements
 
-### Evaluation sequence
-TODO: Describe in more detail
-
-- First check all rules for a property with matching user permissions **in the order in which they are defined**.
-- If no rule evaluates to _true_, check all rules for the property WITHOUT permissions **in the order in which they are 
-  defined**.
+### Rule validation sequence
+For each property there might be _several rules_ that differ in whether and what conditions they have.
+E.g. some with permission conditions defined, others not.
+- First all rules whose permissions condition and property conditions are met needs to be 
+determined.
+- If there are no such rules all rules without any permissions condition and with matching property 
+conditions needs to be determined.
+- All matching rules are validated **in the order in which they are defined**, i.e. it is checked that 
+the implicit constraint (for _mandatory_ and _immutable_ rules) resp. explicit constraint 
+(for _content_ and _update_ rules)is fulfilled.
 
 TODO: Example
 
 ### Validation error codes
-TODO: Describe
+TODO: Describe in more detail
+
+Default error code prefixes:
+- error.validation.mandatory.
+- error.validation.immutable.
+- error.validation.content.
+- error.validation.update.
+
+For _mandatory_ and _immutable_ rules the name of the entity type and the property name are added, e.g.
+- error.validation.mandatory.article.responsibleUser
+
+For _content_ and _update_ rules error code additionally contains the name of the constraint type in lower case, e.g.
+- error.validation.content.regex_any.article.name
+
 
 # Implementations
 - [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
@@ -842,13 +922,8 @@ TODO Document status here?
 |...| ?    | ?   |
 
 # Thoughts about possible extensions
-- DATE_RANGE with _minDays_ and _maxDays_ for relative time ranges?<br>
-  E.g. to validate that a date is between 3 days in the past and 30 Days in the future.
-
-- DATE_FUTURE/PAST with _hours_?<br>
+- FUTURE_HOURS etc.?<br>
   E.g. to validate that a date is at least 6 hours in the future.
-
-- DATE_WEEKDAY_ANY with _values_ `["MONDAY", ...]`?
 
 - RANGE_REF?<br>
   E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>

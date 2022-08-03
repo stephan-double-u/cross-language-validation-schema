@@ -5,13 +5,13 @@
 
   "type": "object",
   "properties": {
-    "schema-version": { "type": "string" , "enum": ["0.5"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.6"]},
     "mandatoryRules": { "$ref": "#/definitions/typeRules" },
     "immutableRules": { "$ref": "#/definitions/typeRules" },
     "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
     "updateRules":    { "$ref": "#/definitions/typeRulesUpdate" }
   },
-  "required": ["schema-version", "mandatoryRules", "immutableRules", "contentRules", "updateRules"],
+  "required": ["schemaVersion", "mandatoryRules", "immutableRules", "contentRules", "updateRules"],
   "additionalProperties": false,
 
   "definitions": {
@@ -190,7 +190,9 @@
         { "$ref": "#/definitions/rangeDateConstraint" },
         { "$ref": "#/definitions/rangeDateTimeConstraint" },
         { "$ref": "#/definitions/regexConstraint" },
-        { "$ref": "#/definitions/datesConstraint" }
+        { "$ref": "#/definitions/datesConstraint" },
+        { "$ref": "#/definitions/periodConstraint" },
+        { "$ref": "#/definitions/weekdayConstraint" }
       ]
     },
     "errorCodeControl": {
@@ -358,8 +360,43 @@
     "datesConstraint": {
       "type": "object",
       "properties": {
-        "type": { "type": "string" , "enum": ["DATE_FUTURE", "DATE_PAST"] },
-        "days" : { "type": "number" }
+        "type": { "type": "string" , "enum": ["FUTURE_DAYS", "PAST_DAYS"] },
+        "min" : { "type": "number" },
+        "max" : { "type": "number" }
+      },
+      "required": ["type"],
+      "anyOf": [
+        { "required": ["min"] },
+        { "required": ["min", "max"] }
+      ],
+      "additionalProperties": false
+    },
+    "periodConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["PERIOD_DAYS"] },
+        "min" : { "type": "number" },
+        "max" : { "type": "number" }
+      },
+      "required": ["type"],
+      "anyOf": [
+        { "required": ["min"] },
+        { "required": ["max"] }
+      ],
+      "additionalProperties": false
+    },
+    "weekdayConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["WEEKDAY_ANY"] },
+        "days" : {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum":  ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "null"]
+          },
+          "minItems": 1
+        }
       },
       "required": ["type", "days"],
       "additionalProperties": false

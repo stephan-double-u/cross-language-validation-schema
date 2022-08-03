@@ -1,5 +1,5 @@
 {
-  "schema-version": "0.5",
+  "schemaVersion": "0.6",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -25,6 +25,16 @@
             "values": [
               "aaa"
             ]
+          },
+          "condition": {
+            "property": "aDate",
+            "constraint": {
+              "type": "WEEKDAY_ANY",
+              "days": [
+                "MONDAY", "null", "TUESDAY"
+
+              ]
+            }
           }
         }
       ],
@@ -156,22 +166,31 @@
               {
                 "property": "startDate",
                 "constraint": {
-                  "type": "DATE_FUTURE",
-                  "days": 0
+                  "type": "FUTURE_DAYS",
+                  "min": 0
                 }
               },
               {
                 "property": "startLocalDate",
                 "constraint": {
-                  "type": "DATE_PAST",
-                  "days": 2
+                  "type": "PAST_DAYS",
+                  "min": 2,
+                  "max": 2
                 }
               },
               {
                 "property": "startCalDate",
                 "constraint": {
-                  "type": "DATE_FUTURE",
-                  "days": 100
+                  "type": "FUTURE_DAYS",
+                  "min": 100
+                }
+              },
+              {
+                "property": "otherDate",
+                "constraint": {
+                  "type": "PERIOD_DAYS",
+                  "min": -100,
+                  "min": 100
                 }
               }
             ]
