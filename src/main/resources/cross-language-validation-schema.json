@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.6"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.7"]},
     "mandatoryRules": { "$ref": "#/definitions/typeRules" },
     "immutableRules": { "$ref": "#/definitions/typeRules" },
     "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
@@ -181,6 +181,7 @@
       "oneOf": [
         { "$ref": "#/definitions/equalsStringConstraint" },
         { "$ref": "#/definitions/equalsDateConstraint" },
+        { "$ref": "#/definitions/equalsDateTimeConstraint" },
         { "$ref": "#/definitions/equalsNumberConstraint" },
         { "$ref": "#/definitions/equalsBooleanConstraint" },
         { "$ref": "#/definitions/equalsNullConstraint" },
@@ -218,8 +219,10 @@
                 { "format": "date-time" }
               ]
             }
-          }
-        }
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -231,13 +234,29 @@
         "values" : {
           "type": "array",
           "items": {
+            "type": "string",
+            "format": "date"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "equalsDateTimeConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["EQUALS_ANY", "EQUALS_NONE"] },
+        "values" : {
+          "type": "array",
+          "items": {
             "type": "string" ,
-            "anyOf": [
-              { "format": "date" },
-              { "format": "date-time" }
-            ]
-          }
-        }
+            "format": "date-time"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -248,8 +267,10 @@
         "type": { "type": "string" , "enum": ["EQUALS_ANY", "EQUALS_NONE"] },
         "values" : {
           "type": "array",
-          "items": { "type" : "number" }
-        }
+          "items": { "type" : "number" },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -260,8 +281,10 @@
         "type": { "type": "string" , "enum": ["EQUALS_ANY", "EQUALS_NONE"] },
         "values" : {
           "type": "array",
-          "items": { "type" : "boolean" }
-        }
+          "items": { "type" : "boolean" },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -283,8 +306,10 @@
           "items": {
             "type" : "string",
             "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
-          }
-        }
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -393,10 +418,11 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum":  ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "null"]
+            "enum":  ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
           },
           "minItems": 1
-        }
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "days"],
       "additionalProperties": false

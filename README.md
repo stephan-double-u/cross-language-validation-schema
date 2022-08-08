@@ -1,7 +1,7 @@
-# Cross Language Validation (CLV) Schema - V0.6
+# Cross Language Validation (CLV) Schema - V0.7
 JSON schema that specifies validation rules in a language independent manner to enable cross language validation.<br>
-An online, interactive JSON Schema validator for this schema can be found here: 
-https://www.jsonschemavalidator.net/s/cDno0Wh6
+An online, interactive JSON Schema validator for this schema can be found here:
+https://www.jsonschemavalidator.net/s/ByoXo237
 
 ## Table of Contents
 - [TL;DR](#tldr)
@@ -38,7 +38,7 @@ https://www.jsonschemavalidator.net/s/cDno0Wh6
   - [Producer](#producer)
   - [Consumer](#consumer)
   - [Validator](#validator)
-    - [Evaluation sequence](#evaluation-sequence)
+    - [Rule validation sequence](#rule-validation-sequence)
     - [Validation error codes](#validation-error-codes)
 - [Implementations](#implementations)
   - [Implementation status](#implementation-status)
@@ -244,7 +244,7 @@ A valid JSON contains _5 key-value_ pairs:
 Thus, the most minimal valid JSON file (i.e. a file that does not contain any validation rule at all) look like this:
 ```json
 {
-  "schemaVersion": "0.6",
+  "schemaVersion": "0.7",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
@@ -544,7 +544,7 @@ If a validation rule is not met, an error code is generated as defined in chapte
 An elementary constraint is used as a _content constraint_ or within conditions for "related properties", i.e. it 
 is used as the _value of any constraint key_.
 It is an object consisting of one or more key-value pairs.<br>
-The key of the first pair is _type_, its value is a string stating the type of the constraint. Each type can have 
+The key of the first pair is always _type_, its value is a string stating the type of the constraint. Each type can have 
 further type-specific key-value pairs.
 
 ### EQUALS_ANY
@@ -557,17 +557,24 @@ Example:
       "values": [
         "ACTIVE",
         "INACTIVE"
-      ]
+      ],
+      "nullEqualsTo": true
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
 
-If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be 
+Requirements:
+- If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) 
+format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be 
 interpreted as such.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### EQUALS_ANY_REF
 With the EQUALS_ANY_REF constraint it is possible to compare the values of properties. It validates that the
@@ -580,20 +587,26 @@ Example:
       "values": [
         "articles[0].status",
         "articles[1].status"
-      ]
+      ],
+      "nullEqualsTo": true
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
 
-The type of the associated property must equal the type of the properties referenced by the property names listed in the
-array named _values_.
-
-If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-interpreted as such.
+Requirements:
+- The type of the associated property must equal the type of the properties referenced by the property names listed in the
+  array named _values_.
+- If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
+  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+  interpreted as such.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### EQUALS_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
@@ -605,17 +618,26 @@ Example:
       "values": [
         "NEW",
         "DECOMMISSIONED"
-      ]
+      ],
+      "nullEqualsTo": false
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
 
-If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-interpreted as such.
+Requirements:
+- The type of the associated property must equal the type of the properties referenced by the property names listed in the
+  array named _values_.
+- If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
+  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+  interpreted as such.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _true_.
 
 ### EQUALS_NONE_REF
 With the EQUALS_NONE_REF constraint it is possible to compare the _values of properties_. It validates that the
@@ -628,19 +650,26 @@ Example:
       "values": [
         "articles[0].status",
         "articles[1].status"
-      ]
+      ],
+      "nullEqualsTo": false
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
 
-The type of the associated property must equal the type of the properties referenced by the property names listed in the
-array named _values_.<br>
-If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-interpreted as such.
+Requirements:
+- The type of the associated property must equal the type of the properties referenced by the property names listed in the
+  array named _values_.
+- If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
+  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
+  interpreted as such.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _true_.
 
 ### EQUALS_NULL
 The EQUALS_NULL constraint checks whether the value of the associated property is _null_.
@@ -649,7 +678,7 @@ The EQUALS_NULL constraint checks whether the value of the associated property i
       "type": "EQUALS_NULL"
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
@@ -663,7 +692,7 @@ The EQUALS_NOT_NULL constraint checks whether the value of the associated proper
       "type": "EQUALS_NOT_NULL"
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 - _boolean_
@@ -682,7 +711,7 @@ Example:
       ]
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_
 - _number_
 
@@ -705,25 +734,20 @@ Example:
       "max": 10
     }
 ```
-This constraint can be applied to properties of type
+This constraint can be applied to properties of type:
 - _string_ : the size of a string corresponds to the number of string characters.
 - _array_ : the size of an array corresponds to the number of array elements.
 - _object_ : the size of an object corresponds to the number of object keys.
 
-At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
-The values of the keys _min_ and _max_ must be **> 0** (zero).
+Requirements:
+- At least one of the keys _min_ or _max_ must be specified. The other key is optional.
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.
+- The values of the keys _min_ and _max_ must be **> 0** (zero).
 
 ### RANGE
-The RANGE constraint checks whether the value of the associated property is within the range defined by the values of the keys _min_ and _max_.<br>
-This constraint can be applied to properties of type
-- _number_
-- _string_  - as long as the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ 
-(e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
-
-Accordingly, the values of the keys _min_ and _max_ must have the same type, i.e. either _number_ or _date_ resp. _date-time_ complient _string_.<br>
-Example 1:
+The RANGE constraint checks whether the value of the associated property is within the range defined by the values of 
+the keys _min_ and _max_.<br>
+Example:
 ```json
     {
       "type": "RANGE",
@@ -731,17 +755,16 @@ Example 1:
       "max": 10
     }
 ```
-Example 2:
-```json
-    {
-      "type": "RANGE",
-      "min": "2022-01-01",
-      "max": "2022-12-31"
-    }
-```
+This constraint can be applied to properties of type:
+- _number_
+- _string_  - as long as the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ 
+(e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.
+Requirements:
+- the values of the keys _min_ and _max_ must equal the type of the associated property.
+- At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.
 
 ### FUTURE_DAYS
 The FUTURE_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the future_.<br>
@@ -758,10 +781,11 @@ This constraint can only be applied to properties of type _string_ that complies
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-The key _min_ is mandatory.<br>
-The key _max_ is optional.<br>
-The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+Requirements:
+- The key _min_ is mandatory.<br>
+- The key _max_ is optional.<br>
+- The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 
 ### PAST_DAYS
 The PAST_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the past_.<br>
@@ -778,10 +802,11 @@ This constraint can only be applied to properties of type _string_ that complies
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-The key _min_ is mandatory.<br>
-The key _max_ is optional.<br>
-The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+Requirements:
+- The key _min_ is mandatory.<br>
+- The key _max_ is optional.<br>
+- The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 
 ### PERIOD_DAYS
 The PERIOD_DAYS constraint checks whether the value of the associated property is a date that is 0 or more days _in the
@@ -798,10 +823,10 @@ This constraint can only be applied to properties of type _string_ that complies
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
-If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
-The values of the keys _min_ and _max_ must be **>= 0** (zero).
-
+Requirements:
+- At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+- The values of the keys _min_ and _max_ must be **>= 0** (zero).
 
 ### WEEKDAY_ANY
 The WEEKDAY_ANY constraint checks whether the value of the associated property is a date that matches any of the values
@@ -810,25 +835,27 @@ Example:
 ```json
     {
       "type": "WEEKDAY_ANY",
-      "days": ["SATURDAY", "SUNDAY", "null"]
-    } 
+      "days": ["SATURDAY", "SUNDAY"],
+      "nullEqualsTo": true
+} 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
-The array may contain several weekday names from this list:
-- "MONDAY",
-- "TUESDAY"
-- "WEDNESDAY"
-- "THURSDAY"
-- "FRIDAY"
-- "SATURDAY"
-- "SUNDAY"
-
-In order to allow the associated property to be _null_ as well, the string "null" (including Quotes!) can be added to the array.<br>
-The array must contain at least one value.
-
+Requirements:
+- The array may contain several weekday names from this list:
+  - "MONDAY",
+  - "TUESDAY"
+  - "WEDNESDAY"
+  - "THURSDAY"
+  - "FRIDAY"
+  - "SATURDAY"
+  - "SUNDAY"
+- The array must contain at least one value.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 # Requirements for the implementers
 An implementation of this schema must meet the following requirements. These requirements depend on which part is 
@@ -924,6 +951,9 @@ TODO Document status here?
 # Thoughts about possible extensions
 - FUTURE_HOURS etc.?<br>
   E.g. to validate that a date is at least 6 hours in the future.
+
+- RANGE with "boundsIncluded":false?<br>
+  E.g. with `"min": "5"`, to validate that a value is _is greater_ than 5<br>
 
 - RANGE_REF?<br>
   E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>
