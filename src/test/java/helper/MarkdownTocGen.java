@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 /**
- * Generates TOC for/from README.md (github & VSC(?) flavor)
+ * Generates TOC from/for README.md (github flavor)
  */
 public class MarkdownTocGen {
     public static void main(String[] args) throws IOException {
@@ -15,18 +14,17 @@ public class MarkdownTocGen {
         BufferedReader mdReader = Files.newBufferedReader(mdPath);
         mdReader.lines()
                 .filter(line -> line.startsWith("#"))
-                .forEach(heading -> buildLink(heading));
+                .forEach(MarkdownTocGen::buildLink);
 
     }
 
-    private static String spacesForIdent = " ".repeat(100);
+    private static final String spacesForIdent = " ".repeat(100);
     private static void buildLink(String heading) {
         int level = heading.split(" ")[0].length() - 1;
         String text = heading.substring(level + 2);
-        // replace 'special chars' to "" and spaces to 'minus'
-        String link = text.toLowerCase().replaceAll("[;_]", "").replace(" ", "-");
+        // replace 'special chars' to "" and spaces to 'minus'; but NOT "_"! (underscore in heading must be escapes)
+        String link = text.toLowerCase().replaceAll("[;\\\\]", "").replace(" ", "-");
         String indent = level == 0 ? "" : spacesForIdent.substring(0, level * 2);
-        // escape "_" in text
-        System.out.println(indent + "- [" + text.replaceAll("_", "\\_") + "](#" + link + ")");
+        System.out.println(indent + "- [" + text + "](#" + link + ")");
     }
 }
