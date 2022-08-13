@@ -21,7 +21,7 @@ https://www.jsonschemavalidator.net/s/ByoXo237
     - [Constraints about referenced properties](#constraints-about-referenced-properties)
     - [Error code control](#error-code-control)
   - [Elementary constraints](#elementary-constraints)
-    - [EQUALS_ANY](#equalsany)
+    - [EQUALS_ANY](#equals_any)
     - [EQUALS_ANY_REF](#equalsanyref)
     - [EQUALS_NONE](#equalsnone)
     - [EQUALS_NONE_REF](#equalsnoneref)
@@ -547,7 +547,7 @@ It is an object consisting of one or more key-value pairs.<br>
 The key of the first pair is always _type_, its value is a string stating the type of the constraint. Each type can have 
 further type-specific key-value pairs.
 
-### EQUALS_ANY
+### EQUALS\_ANY
 The EQUALS_ANY constraint checks whether the value of the associated property matches any of the values listed in the
 array named _values_.<br>
 Example:
