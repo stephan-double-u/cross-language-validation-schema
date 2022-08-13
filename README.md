@@ -2,7 +2,7 @@
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/ByoXo237
+https://www.jsonschemavalidator.net/s/ByoXo237 
 
 ## Table of Contents
 - [TL;DR](#tldr)
