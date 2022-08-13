@@ -21,7 +21,7 @@ https://www.jsonschemavalidator.net/s/ByoXo237
     - [Constraints about referenced properties](#constraints-about-referenced-properties)
     - [Error code control](#error-code-control)
   - [Elementary constraints](#elementary-constraints)
-    - [EQUALS_ANY](#equals_any)
+    - [EQUALS\_ANY](#equals_any)
     - [EQUALS_ANY_REF](#equalsanyref)
     - [EQUALS_NONE](#equalsnone)
     - [EQUALS_NONE_REF](#equalsnoneref)
