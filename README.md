@@ -4,6 +4,9 @@ This JSON schema specifies validation rules in a language independent manner to 
 An online, interactive JSON Schema validator for this schema can be found here:
 https://www.jsonschemavalidator.net/s/ByoXo237 
 
+Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
+should be done either by the writer or the reader.
+
 ## Table of Contents
 - [TL;DR](#tldr)
 - [Motivation](#motivation)
@@ -130,15 +133,15 @@ On the one hand to provide good user guidance, on the other hand to avoid numero
   input field doesn't pass the validation check.
 
 ## Drawbacks of existing validation frameworks
-Although the Java Bean Validation framework has become the de-facto standard for Java based apps, it has some 
-shortcomings:
-- Most importantly: the validation rules can't be _reused_ easily at least in non-java components, and have to be 
-  re-implemented.
+At least for for Java based apps the Java Bean Validation framework is the de-facto standard for validation, but it has 
+some shortcomings:
+- Most importantly: the validation rules can't be _reused_ easily in other components, and have to be re-implemented.
 - The functionality of some standard annotations are quite limited. E.g. with `@Future` it is not possible to validate 
   that a date is 2 days in the future.
-- Multi-property validations cannot be expressed in a compact form.
-- Rules that dependent on user permissions cannot be expressed in a compact form.
+- Multi-property validations cannot be expressed in a concise form.
+- Rules that dependent on user permissions cannot be expressed in a concise form.
 - The rules for one class resp. entity are usually scattered over several code places.
+- Class validators can not be used with Records.
 - And a perhaps more philosophical aspect: Because of the annotation approach, real POJOs can not be validated.
 
 ## Required features of a flexible and expressive validation framework
@@ -245,16 +248,20 @@ A fictitious requirements document could mention validation rules like this:
 # Documentation JSON structure
 ## Top-level content
 A valid JSON contains _5 key/value_ pairs:
-- _schemaVersion_ specifies the version of the JSON schema in use.
-- _mandatoryRules_ is an object that contains a key/value pair for each _entity type_ that has validation rules 
-  regarding mandatory properties.
-- _immutableRules_ is an object that contains a key/value pair for each _entity type_ that has validation rules 
-  regarding immutable properties.
-- _contentRules_ is an object that contains a key/value pair for each _entity type_ that has validation rules 
-  regarding the content of properties.
-- _updateRules_ is an object that contains a key/value pair for each _entity type_ that has validation rules 
-  regarding the _updated_ content of properties, i.e. describe the allowed transitions between the original and the 
-  changed content.
+- Key _schemaVersion_
+  - its value is a string that specifies the version of the JSON schema in use.
+- Key _mandatoryRules_
+  - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
+    mandatory properties.
+- Key _immutableRules_ 
+  - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
+    immutable properties.
+- Key _contentRules_ 
+  - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
+    the content of properties.
+- Key _updateRules_ 
+  - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding the
+    allowed transitions between the original and the changed property content during an entity update.
 
 Thus, the most minimal valid JSON file (i.e. a file that does not contain any validation rule at all) look like this:
 ```json
@@ -272,7 +279,7 @@ Validation rules regarding the properties of an entity type are defined by a key
 of the entity type.<br>
 The value is an object that _may contain_ a key/value pair for any property related validation rule
 of that type.<br>
-A possible value for one of the above-mentioned `Rules` keys:
+A possible value for one of the above-mentioned `*Rules` keys:
 ```json
   {
     "article": {},
@@ -381,7 +388,7 @@ certain _user permissions_. The value is an object with 2 keys:<br>
 
 This pair is optional for all rule types.
 
-The type of this constraint resp. its absense has an impact on the evaluation of the validation rule:
+The type of this constraint resp. its absence has an impact on the evaluation of the validation rule:
 - a permissions constraint of type _ALL_ means, that the validation rule should only be evaluated, if the user has 
 _all_ the permissions listed in the _values_ array.
 - a permissions constraint of type _ANY_ means, that the validation rule should only be evaluated, if the user has
@@ -392,7 +399,7 @@ does not have any permission from the _values_ array.
   permissions the user might have.
 
 > JSON for example validation rule: "The article name must not be modified if the user (who wants to 
-> update the object) owns **any of** the role resp. permission APPRENTICE or READ_ONLY":
+> update the object) owns any of the role resp. permission APPRENTICE or READ_ONLY":
 ```json
   "immutableRules": {
     "article": {
@@ -550,19 +557,24 @@ this third key/value pair:
     ```
 
 ### Error code control
-TODO describe in more detail
+If a validation rule is violated, an error code is created as defined in chapter 
+[Validation error codes](#validation-error-codes).<br>
+This error code can be controlled by either changing the default error code prefix or by adding a key/value pair with 
+the key _errorCodeControl_ whose value is an object with two key/value pairs:
+- The key _useType_ defines how the error code should be controlled
+  - the value _AS_SUFFIX_ means, that a suffix is added to the default error code
+  - the value _AS_REPLACEMENT_ means, that the default error code is completely replaced
+- the value of the key _code_ contains the error code suffix resp. the error code replacement
 
-If a validation rule is violated, an error code is generated as defined in chapter 
-[Validation error codes](#validation-error-codes)
 
-It can be customised either by adding a suffix:
+Example JSON for _useType_ _AS_SUFFIX_:
 ```json
   "errorCodeControl": {
     "useType": "AS_SUFFIX",
     "code": "#suffix"
   }
 ```
-or by replacing the error code resp. error message:
+Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
   "errorCodeControl": {
     "useType": "AS_REPLACEMENT",
@@ -887,16 +899,17 @@ Requirements:
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
 
-# Requirements for the implementers
-An implementation of this schema must meet the following requirements. These requirements depend on which part is 
+
+# Requirements for an implementer
+An implementation for this schema must meet the following requirements. These requirements depend on which part is 
 implemented.
 
-## Producer
+## JSON producer
 TODO: Describe requirements
 
-Must provide an API to define all types of validation rules.
+A JSON producer must provide an API to define all types of validation rules.
 > E.g. with [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
-  a mandatory rule with dependencies to other properties (see example rule 3) can be defined like this:
+  a mandatory rule with dependencies to other properties (see example rule 6) can be defined like this:
 ```java
 final ValidationRules<Article> rules = new ValidationRules<>(Article.class);
 rules.mandatory("responsibleUser",
@@ -913,7 +926,7 @@ public class ValidationRules<T> {
 }
 ```
 
-## Consumer
+## JSON consumer
 TODO: Describe requirements
 
 Must provide an API to accept the JSON with the serialized validation rules.
@@ -939,44 +952,33 @@ the implicit constraint (for _mandatory_ and _immutable_ rules) resp. explicit c
 TODO: Example
 
 ### Validation error codes
-TODO: Describe in more detail
+Whenever a validation rule is violated, a error code is generated. This code consists of a rule type specific prefix and
+a type specific suffix.
 
-Default error code prefixes:
-- error.validation.mandatory.
-- error.validation.immutable.
-- error.validation.content.
-- error.validation.update.
+The default error code prefix is:
+- `error.validation.mandatory.` for _mandatory_ rules
+- `error.validation.immutable.` for _immutable_ rules
+- `error.validation.content.` for _content_ rules
+- `error.validation.update.` for _update_ rules
 
-For _mandatory_ and _immutable_ rules the name of the entity type and the property name are added, e.g.
-- error.validation.mandatory.article.responsibleUser
+Any implementation must provide API methods to overwrite this defaults.
 
-For _content_ and _update_ rules error code additionally contains the name of the constraint type in lower case, e.g.
-- error.validation.content.regex_any.article.name
+For _mandatory_ and _immutable_ rules the error code suffix is build by concatenating the name of the entity type and 
+the name of the property by using "." (full stop).<br>
+E.g.
+> error.validation.mandatory.article.responsibleUser
 
+For _content_ and _update_ rules the error code suffix is build by concatenating the name of the constraint type in 
+lower case, the name of the entity type and the name of the property by using "." (full stop).<br>
+E.g.
+> error.validation.content.regex_any.article.name
 
-# Implementations
+# Known implementations
 - [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
   Validator and a Producer for this schema in Java.
 - [Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
   a Validator and a Consumer for this schema in ECMAScript 6.
 
-## Implementation status
-TODO Document status here?
-
-|Supported feature | Java | ES6 |
-|--- |------|-----|
-|JSON Producer| +    | -   |
-|JSON Consumer| -    | +   |
-|Validator for _mandatory_ rules| +    | +   |
-|Validator for _immutable_ rules| +    | +   |
-|Validator for _content_ rules| +    | +   |
-|Validator for _update_ rules| +    | +   |
-|Supports simple property names (e.g. ``responsibleUser``)| +    | +   |
-|Supports nested property names (e.g. ``customer.address.city``)| +    | +   |
-|Supports single-indexed property names (e.g. ``medicalSets[0].articles[0].animalUse``)| +    | +   |
-|Supports multi-indexed property names (e.g. ``medicalSets[1-3].articles[*].animalUse``)| +    | +   |
-|Supports terminal aggregate functions| +    | +   |
-|...| ?    | ?   |
 
 # Thoughts about possible extensions
 - FUTURE_HOURS etc.?<br>
