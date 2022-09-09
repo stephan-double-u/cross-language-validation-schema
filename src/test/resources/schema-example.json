@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.7",
+  "schemaVersion": "0.8",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -171,7 +171,7 @@
               {
                 "property": "status",
                 "constraint": {
-                  "type": "REGEX_ANY",
+                  "type": "REGEX_NONE",
                   "values": [
                     "E"
                   ]

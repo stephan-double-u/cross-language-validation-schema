@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.7"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.8"]},
     "mandatoryRules": { "$ref": "#/definitions/typeRules" },
     "immutableRules": { "$ref": "#/definitions/typeRules" },
     "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
@@ -373,7 +373,7 @@
     "regexConstraint": {
       "type": "object",
       "properties": {
-        "type": { "type": "string" , "enum": ["REGEX_ANY"] },
+        "type": { "type": "string" , "enum": ["REGEX_ANY", "REGEX_NONE"] },
         "values" : {
           "type": "array",
           "items": { "type" : "string", "format": "regex" }

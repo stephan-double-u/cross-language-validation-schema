@@ -1,4 +1,4 @@
-# Cross Language Validation (CLV) Schema - V0.7
+# Cross Language Validation (CLV) Schema - V0.8
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
@@ -38,20 +38,20 @@ should be done either by the writer or the reader.
     - [EQUALS\_NULL](#equals_null)
     - [EQUALS\_NOT\_NULL](#equals_not_null)
     - [REGEX\_ANY](#regex_any)
+    - [REGEX\_NONE](#regex_none)
     - [SIZE](#size)
     - [RANGE](#range)
     - [FUTURE\_DAYS](#future_days)
     - [PAST\_DAYS](#past_days)
     - [PERIOD\_DAYS](#period_days)
     - [WEEKDAY\_ANY](#weekday_any)
-- [Requirements for the implementers](#requirements-for-the-implementers)
-  - [Producer](#producer)
-  - [Consumer](#consumer)
+- [Requirements for an implementer](#requirements-for-an-implementer)
+  - [JSON producer](#json-producer)
+  - [JSON consumer](#json-consumer)
   - [Validator](#validator)
     - [Rule validation sequence](#rule-validation-sequence)
     - [Validation error codes](#validation-error-codes)
-- [Implementations](#implementations)
-  - [Implementation status](#implementation-status)
+- [Known implementations](#known-implementations)
 - [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
 # TL;DR
@@ -742,14 +742,30 @@ This constraint can be applied to properties of type:
 - _object_
 
 ### REGEX\_ANY
-The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular 
+The REGEX_ANY constraint checks whether the value of the associated property does _match_ any of the _regular
 expressions_ listed in the array named _values_.<br>
 Example:
 ```json
     {
-      "type": "REGEX_ANY",
+  "type": "REGEX_ANY",
+  "values": [
+    "^[0-9]{5}$"
+  ]
+}
+```
+This constraint can be applied to properties of type:
+- _string_
+- _number_
+
+### REGEX\_NONE
+The REGEX_NONE constraint checks whether the value of the associated property does _not match_ any of the _regular
+expressions_ listed in the array named _values_.<br>
+Example:
+```json
+    {
+      "type": "REGEX_NONE",
       "values": [
-        "^[0-9]{5}$"
+        "forbidden"
       ]
     }
 ```
@@ -759,7 +775,7 @@ This constraint can be applied to properties of type:
 
 **NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features 
 usually results from the lowest common denominator of the languages involved. 
-For instance, a `REGEX_ANY` validation rule that should be 'shared' between a Java backend and a ES6 frontend, should 
+For instance, a `REGEX_NONE` validation rule that should be 'shared' between a Java backend and a ES6 frontend, should 
 not use _inline modifiers_ (e.g. `(?i)`),
 [because ES6 has no support for it](https://en.wikipedia.org/wiki/Comparison_of_regular_expression_engines#Part_2).
 (At least as long as the ES6 implementation does not use externals libraries to augment their build-in regex 
