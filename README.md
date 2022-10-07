@@ -10,6 +10,11 @@ should be done either by the writer or the reader.
 ## Table of Contents
 - [TL;DR](#tldr)
 - [Motivation](#motivation)
+  - [Rule Types](#rule-types)
+    - [Mandatory Rules](#mandatory-rules)
+    - [Immutable Rules](#immutable-rules)
+    - [Content Rules](#content-rules)
+    - [Update Rules](#update-rules)
   - [Drawbacks of existing validation frameworks](#drawbacks-of-existing-validation-frameworks)
   - [Required features of a flexible and expressive validation framework](#required-features-of-a-flexible-and-expressive-validation-framework)
 - [Close-to-life example](#close-to-life-example)
@@ -28,7 +33,10 @@ should be done either by the writer or the reader.
   - [Condition types and objects](#condition-types-and-objects)
     - [Content constraint](#content-constraint)
     - [Permissions constraint](#permissions-constraint)
-    - [Conditions about dependent properties](#conditions-about-dependent-properties)
+    - [Conditions constraint](#conditions-constraint)
+      - [Single condition](#single-condition)
+      - [Conditions Group](#conditions-group)
+      - [Conditions Top Group](#conditions-top-group)
     - [Error code control](#error-code-control)
   - [Elementary constraints](#elementary-constraints)
     - [EQUALS\_ANY](#equals_any)
@@ -49,8 +57,8 @@ should be done either by the writer or the reader.
   - [JSON producer](#json-producer)
   - [JSON consumer](#json-consumer)
   - [Validator](#validator)
-    - [Rule validation sequence](#rule-validation-sequence)
     - [Validation error codes](#validation-error-codes)
+    - [Rule validation sequence](#rule-validation-sequence)
 - [Known implementations](#known-implementations)
 - [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
@@ -593,7 +601,7 @@ array of [elementary constraint objects](#Elementary-constraints).
   }
 ```
 
-### Conditions Top Group
+#### Conditions Top Group
 If there are multiple of these conditions, and if the logical relation between the conditions is complex so 
 that they are _linked with both AND and OR_, the key of the third pair is _conditionsTopGroup_, where the value
 is an object with 2 key/value pairs: the key of one pair is _operator_, its value is either _AND_ or _OR_. 
