@@ -63,9 +63,7 @@ components. E.g. in a frontend written in ES6 and a backend written in Java.
 One objective is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
 validation rules, according to the motto "define once, validate everywhere".
 
-Nevertheless, an implementation for that schema can also be used usefully on its own e.g. in a Java backend.
-
-Of course this requires the implementation of generic validators as well as the implementation of JSON _producers_ 
+Of course this requires the implementation of generic _validators_ as well as the implementation of JSON _producers_ 
 resp. JSON _consumers_ for valid JSON documents in the programming languages that are involved.
 
 As an example of what is possible, we assume we have this quite complex validation rule that involves conditions that 
@@ -99,9 +97,20 @@ An application that uses this Java implementation can expose the JSON e.g. via a
         return ValidationRules.serializeToJson(ARTICLE_RULES);
     }
 ```
-With the help of the &#10169;
+The JSON for the example rule would look similar to this: [JsonAnimalUse.md](subpages/JsonAnimalUse.md)
+
+
+A frontend can then retrieve the serialized validation rules and make it known to the &#10169;
 [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) 
-a frontend can then check if an object property is immutable and e.g. should be displayed as _disabled_ like this:
+like this: 
+```javascript
+const getValidationRules = async () => {
+    const response = await fetch('http://localhost:8080/validation-rules');
+    const rules = await response.json();
+    setValidationRules(rules);
+}
+```
+Then it can e.g. check if an object property is immutable and should be displayed as _disabled_ like this:
 ```javascript
 // retrieved e.g. via GET /articles/12345
 article = {
@@ -113,8 +122,10 @@ article = {
 }
 animalUseCheckbox.disabled = isPropertyImmutable("article", "animalUse", article);
 ```
-&#9658; See the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) as a comprehensive 
-example of how to use the framework. It's also a good starting point to see how to write different types of rules.
+
+&#9658; See the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) as a 
+comprehensive example of how to use the framework. It's also a good starting point to see how to write different 
+types of rules.
 
 # Motivation
 Validation of input data plays a crucial role in almost any application. Whereby the server-side validation is a must, 
@@ -125,15 +136,99 @@ The idea for this JSON schema was inspired by a web application that had _many_ 
 user permissions and multi-property validations.
 The front-end of this application was written in JavaScript, while the back-end was written in Java. 
 Most of these validation rules should be utilized also on the client-side.
-On the one hand to provide good user guidance, on the other hand to avoid numerous client-server round trips:
-- For a _mandatory_ object property the corresponding form input field should be decorated with a visual indicator, and 
-  the submit button should be disabled as long as the user didn't enter a value for this property.
-- For an _immutable_ (a.k.a. _read-only_) object property the corresponding form input field should be disabled.
-- For _content related validation rules_ the client should give immediate feedback to the user if the content of the 
-  input field doesn't pass the validation check.
+On the one hand to provide good user guidance, on the other hand to avoid numerous client-server round trips.
+
+## Rule Types
+It has been shown that it is appropriate to distinguish four types of rules, which differ in their semantics and
+in the way they are validated.
+
+### Mandatory Rules
+Defining a property as _mandatory_ simply says that the value of that property _must not be null_ when the object resp. 
+the property gets validated.
+
+In a backend service the validation of such rules is usually done before an object is **created or updated**.
+
+In a frontend the rule about a mandatory property can be used in 2 ways:
+ - decorate the corresponding form input field with a visual indicator
+ - validate it _before_ the object is sent to the backend 
+and to display an error message at the form input field when the rule is violated.
+
+> E.g. the [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
+for the mandatory property _Name_ together with the corresponding error message like this:
+>
+> ![MandatoryInputField](images/MandatoryInputField.png)
+
+Validation rules can depend on conditions about other object properties.
+> Example rule: "The property _name_ should be mandatory, but only if the property _status_ is not _NEW_". 
+
+Since _mandatory rules_ should also be validated when the object is created, these conditions 
+must be _evaluated against the object that should be created itself_.
+
+> To stay with our example: if the user has set _status_ to e.g. _ACTIVE_, it is evaluated if a _name_ has been 
+> entered as well.
+
+### Immutable Rules
+Defining a property as _immutable_ (a.k.a. _read-only_) says that the value of that property _must not be changed_.
+
+In a backend service the validation of such rules is usually done before an object is **updated**. Determining if a 
+property value has changed is done by _comparing the (possibly) edited property value with the last stored value_.
+
+In a frontend the rule about an immutable property can be used to display the form input field as disabled.
+
+> E.g. the [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
+> for the immutable property _status_ (only if the value is DECOMMISSIONED) like this:
+>
+> ![ImmutableInputField](images/ImmutableInputField.png)
+
+Validation rules can depend on conditions about other object properties.
+
+> Example rule: "The property _status_ must not be changed anymore if _status_ has been set to _DECOMMISSIONED_
+before".
+
+Since _immutable rules_ are validated **only** when the object is **updated**, these conditions 
+are _evaluated against the last stored object version_.
+
+> To stay with our example: given an object that has been saved with _status_ _DECOMMISSIONED_. 
+> If the user somehow manages to set _status_ to, say, _ACTIVE_, it is first evaluated whether the last stored 
+> _status_ value is _DECOMMISSIONED_ and then whether the edited value is equal to the stored value.
+
+### Content Rules
+Defining a _content rule_ for a property means setting a constraint on the possible values of that property.
+
+In a backend service the validation of such rules is usually done before an object is **created or updated**. 
+
+In a frontend _content rules_ are usually validated _before_ the object is sent to the backend.
+
+Validation rules can depend on conditions about other object properties.
+
+> Example rule: "The property _name_ must be at least 5 characters long, but only if the property _status_ is not
+_NEW_".
+
+Since _content rules_ (like _mandatory rules_) should also be validated when the object is created, these conditions
+must be evaluated against the object that should be created itself.
+
+> To stay with our example: if the user sets _status_ to e.g. _ACTIVE_ before pressing a _create_ button, it is 
+> evaluated if a _name_ with at least 5 characters has been entered as well.
+
+### Update Rules
+Like _content rules_, an _update rule_ for a property also sets a constraint on the possible values of that property.
+
+In contrast to _content rules_ and similar to _immutable rules_, an _update rule_ is validated **only** when the object 
+is **updated**. That means, that any conditions about other object properties the rule contains, are _evaluated 
+against the last stored object version_.
+
+That is, _update rules_ can be used to define _state transition validations_.
+
+> Example rule: "The _status_ can be updated from _ACTIVE_ resp. _INACTIVE_ to _ACTIVE_, _INACTIVE_ or 
+> _DECOMMISSIONED_".
+
+> Evaluation of the example rule: given an object that has been saved with _status_ _INACTIVE_.
+> If the user has set _status_ to, say, _DECOMMISSIONED_, it is first evaluated whether the last stored
+> _status_ is either _ACTIVE_ or _INACTIVE_ and then whether the edited value is _ACTIVE_, _INACTIVE_ or
+> _DECOMMISSIONED_.
 
 ## Drawbacks of existing validation frameworks
-At least for for Java based apps the Java Bean Validation framework is the de-facto standard for validation, but it has 
+At least for Java based apps the Java Bean Validation framework is the de-facto standard for validation, but it has 
 some shortcomings:
 - Most importantly: the validation rules can't be _reused_ easily in other components, and have to be re-implemented.
 - The functionality of some standard annotations are quite limited. E.g. with `@Future` it is not possible to validate 
@@ -169,14 +264,7 @@ properties like _id_, _createdBy_ etc. are omitted:
 ```json
   {
     "name": "Biopsy Forcep",
-    "number": "BF-123"
-  }
-```
-- AccessoryAmount
-```json
-  {
-    "accessoryNumber": "BF-123",
-    "amount": "3"
+    "amount": 1
   }
 ```
 - Article
@@ -189,7 +277,7 @@ properties like _id_, _createdBy_ etc. are omitted:
     "everLeftWarehouse": "false",
     "medicalSetId": null,
     "responsibleUser": null,
-    "accessoriesAmount": [
+    "accessories": [
     ]
   }
 ```
@@ -322,14 +410,14 @@ index definition [x]_, where _x_ can be
 All index values are _zero-based_.
 
 #### Names with terminal aggregate function
-Property names that contain array index definitions, the names can be appended by a _terminal aggregate function_:
+For property names that contain array index definitions, the names can be appended by a _terminal aggregate function_:
 - **\#sum**
   - This terminal aggregate function sums up the (numeric) values of all specified array elements, e.g.
-     > "articles[\*].accessoriesAmount[\*].amount#sum"
+     > "articles[\*].accessories[\*].amount#sum"
 - **\#distinct**
   - This terminal aggregate function `#distinct` compares all specified array elements and returns _true_ if all are 
 different, otherwise _false_, e.g.
-    > "articles[\*].accessoriesAmount[\*].accessoryNumber#distinct"
+    > "articles[\*].accessories[\*].name#distinct"
  
 ### The value of the pair
 The Value is an _array_ that may contain different types of [Condition objects](#condition-types-and-objects).
@@ -380,11 +468,11 @@ This type of condition _is required for **content** and **update** rules_ and _n
 ### Permissions constraint
 The second key/value pair with the key _permissions_ is used to **restrict the validity of the validation rule** to 
 certain _user permissions_. The value is an object with 2 keys:<br>
-- _type_ with a value of
+- key _type_ with a value of
   - _ALL_
   - _ANY_
   - _NONE_ 
-- _values_ with an array of allowed permission names.
+- key _values_ with an array of allowed permission names.
 
 This pair is optional for all rule types.
 
@@ -418,12 +506,12 @@ does not have any permission from the _values_ array.
   }
 ```
 
-### Conditions about dependent properties
+### Conditions constraint
 Often the decision whether to apply a validation rule depends on the state of _other properties_.
 Or even on the state of the same properties, in case of changing the value of the property during an update.
 The expectations about the condition of these properties are described in a third key/value pair.<br>
 This pair _is required for **update** rules_.<br>
-If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, a _OR 
+If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, an _OR 
 operation_ or even both.<br>
 Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to define logical expressions like:
 - `a AND b AND c AND d`
@@ -433,20 +521,53 @@ Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to de
 
 and similar variants.<br>
 Depending on the _number of these conditions_ and _how they are logically connected_, there are _three variants_ of 
-this third key/value pair:
+this third key/value pair
 
-1. If a single of these conditions exists, the key of the third pair is _condition_, where the value is an object with 2 
-  key/value pairs: the key of one pair is _property_, its value is the name of the property this condition is 
-  defined for (as defined in [Property related validation rules](#Property-related-validation-rules)).
-  The key of the other pair is _constraint_, its value is an [elementary constraint object](#Elementary-constraints)
-    > JSON for example validation rule: "If an article is used for the first time, it has to be flagged as such. 
-    This flag must never be reset":
-    ```json
-      "immutableRules": {
-        "article": {
-          "everLeftWarehouse": [
-            {
-              "condition": {
+#### Single condition
+If a single of these conditions exists, the key of the third pair is _condition_, where the value is an object with 2 
+key/value pairs: the key of one pair is _property_, its value is the name of the property this condition is 
+defined for (as defined in [Property related validation rules](#Property-related-validation-rules)).
+The key of the other pair is _constraint_, its value is an [elementary constraint object](#Elementary-constraints)
+
+> JSON for example validation rule: "If an article is used for the first time, it has to be flagged as such.
+> This flag must never be reset":
+```json
+"immutableRules": {
+  "article": {
+    "everLeftWarehouse": [
+      {
+        "condition": {
+          "property": "everLeftWarehouse",
+          "constraint": {
+            "type": "EQUALS_ANY",
+            "values": [
+              true
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+#### Conditions Group
+If there are multiple of these conditions, and they are _all linked with either AND or OR_, the key of the 
+third pair is _conditionsGroup_, where the value is an object with 2 key/value pairs: the key of one pair is 
+_operator_, its value is either _AND_ or _OR_. The key of the other pair is _constraints_, its value is an
+array of [elementary constraint objects](#Elementary-constraints).
+
+> JSON for example validation rule: "The animalUse property of an article must not be changed if it has been
+> used once for animals":
+```json
+  "immutableRules": {
+    "article": {
+      "animalUse": [
+        {
+          "conditionsGroup": {
+            "operator": "AND",
+            "conditions": [
+              {
                 "property": "everLeftWarehouse",
                 "constraint": {
                   "type": "EQUALS_ANY",
@@ -454,24 +575,52 @@ this third key/value pair:
                     true
                   ]
                 }
+              },
+              {
+                "property": "animalUse",
+                "constraint": {
+                  "type": "EQUALS_ANY",
+                  "values": [
+                    true
+                  ]
+                }
               }
-            }
-          ]
+            ]
+          }
         }
-      }
-    ```
-2. If there are multiple of these conditions, and they are _all linked with either AND or OR_, the key of the 
-  third pair is _conditionsGroup_, where the value is an object with 2 key/value pairs: the key of one pair is 
-  _operator_, its value is either _AND_ or _OR_. The key of the other pair is _constraints_, its value is an
-  array of [elementary constraint objects](#Elementary-constraints).
-    > JSON for example validation rule: "The animalUse property of an article must not be changed if it has been 
-    used once for animals":
-    ```json
-      "immutableRules": {
-        "article": {
-          "animalUse": [
-            {
-              "conditionsGroup": {
+      ]
+    }
+  }
+```
+
+### Conditions Top Group
+If there are multiple of these conditions, and if the logical relation between the conditions is complex so 
+that they are _linked with both AND and OR_, the key of the third pair is _conditionsTopGroup_, where the value
+is an object with 2 key/value pairs: the key of one pair is _operator_, its value is either _AND_ or _OR_. 
+The key of the other pair is _conditionsGroups_, its value is an array of _ConditionsGroup objects_ as described above.
+
+> JSON for example validation rule: "The animalUse property of an article must not be changed if (a) it is
+> assigned to a medical set, or (b) it has been used once for animals":
+```json
+  "immutableRules": {
+    "article": {
+      "animalUse": [
+        {
+          "conditionsTopGroup": {
+            "operator": "OR",
+            "conditionsGroups": [
+              {
+                "operator": "AND",
+                "conditions": [
+                  {
+                    "property": "medicalSetId",
+                    "constraint": {
+                      "type": "EQUALS_NOT_NULL"
+                    }
+                  }
+                ]
+              },
+              {
                 "operator": "AND",
                 "conditions": [
                   {
@@ -494,67 +643,13 @@ this third key/value pair:
                   }
                 ]
               }
-            }
-          ]
+            ]
+          }
         }
-      }
-    ```
-3. If there are multiple of these conditions, and if the logical relation between the conditions is complex so 
-  that they are _linked with both AND and OR_, the key of the third pair is _conditionsTopGroup_, where the value
-  is an object with 2 key/value pairs: the key of one pair is _operator_, its value is either _AND_ or _OR_. 
-  The key of the other pair is _conditionsGroups_, its value is an array of _ConditionsGroup objects_ as 
-  described above.
-    > JSON for example validation rule: "The animalUse property of an article must not be changed if (a) it is 
-    assigned to a medical set, or (b) it has been used once for animals":
-    ```json
-      "immutableRules": {
-        "article": {
-          "animalUse": [
-            {
-              "conditionsTopGroup": {
-                "operator": "OR",
-                "conditionsGroups": [
-                  {
-                    "operator": "AND",
-                    "conditions": [
-                      {
-                        "property": "medicalSetId",
-                        "constraint": {
-                          "type": "EQUALS_NOT_NULL"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "operator": "AND",
-                    "conditions": [
-                      {
-                        "property": "everLeftWarehouse",
-                        "constraint": {
-                          "type": "EQUALS_ANY",
-                          "values": [
-                            true
-                          ]
-                        }
-                      },
-                      {
-                        "property": "animalUse",
-                        "constraint": {
-                          "type": "EQUALS_ANY",
-                          "values": [
-                            true
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      }
-    ```
+      ]
+    }
+  }
+```
 
 ### Error code control
 If a validation rule is violated, an error code is created as defined in chapter 
@@ -566,19 +661,34 @@ the key _errorCodeControl_ whose value is an object with two key/value pairs:
   - the value _AS_REPLACEMENT_ means, that the default error code is completely replaced
 - the value of the key _code_ contains the error code suffix resp. the error code replacement
 
-
 Example JSON for _useType_ _AS_SUFFIX_:
 ```json
-  "errorCodeControl": {
-    "useType": "AS_SUFFIX",
-    "code": "#suffix"
+  "mandatoryRules": {
+    "article": {
+      "name": [
+        {
+          "errorCodeControl": {
+            "useType": "AS_SUFFIX",
+            "code": "#suffix"
+          }
+        }
+      ]
+    }
   }
 ```
 Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
-  "errorCodeControl": {
-    "useType": "AS_REPLACEMENT",
-    "code": "I hope you know what went wrong"
+  "mandatoryRules": {
+    "article": {
+      "name": [
+        {
+          "errorCodeControl": {
+            "useType": "AS_REPLACEMENT",
+            "code": "I hope you know what went wrong"
+          }
+        }
+      ]
+    }
   }
 ```
 
@@ -921,55 +1031,75 @@ An implementation for this schema must meet the following requirements. These re
 implemented.
 
 ## JSON producer
-TODO: Describe requirements
-
-A JSON producer must provide an API to define all types of validation rules.
+A JSON producer must provide an API to define all types of validation rules, i.e.
+- _mandatory_ and _immutable_ rules for properties
+  - optional with a [properties constraint](#properties-constraint)
+  - optional with [**one** conditions constraint](#conditions-constraint)
+  - optional with an [error code control](#error-code-control)
+- _content_ and _update_ rules for properties
+  - with a [content constraint](#content-constraint)
+  - optional with a [properties constraint](#properties-constraint)
+  - optional with [**one** conditions constraint](#conditions-constraint)
+  - optional with an [error code control](#error-code-control)
+  
 > E.g. with [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
   a mandatory rule with dependencies to other properties (see example rule 6) can be defined like this:
 ```java
-final ValidationRules<Article> rules = new ValidationRules<>(Article.class);
-rules.mandatory("responsibleUser",
+static final ValidationRules<Article> RULES = new ValidationRules<>(Article.class);
+RULES.mandatory("responsibleUser",
         Condition.of("status", Equals.none("NEW")));
 ```
 
-Must provide an API to serialize the validation rules zero or more entity types to JSON.
-> E.g. [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) provides this API:
+A JSON producer must provide an API to serialize the validation rules of zero or more entity types to JSON.
+> E.g. in [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 
+> the class _ValidationRules_ provides this static method:
 ```java
-public class ValidationRules<T> {
-  public static String serializeToJson(final ValidationRules<?>... rules) {
-    // <details omitted>
-  }
-}
+String serializeToJson(ValidationRules<?>... rules)
 ```
 
 ## JSON consumer
-TODO: Describe requirements
-
-Must provide an API to accept the JSON with the serialized validation rules.
-> E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides function:
+A consumer must provide an API to accept the JSON with the serialized validation rules.
+> E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides 
+> this function:
 ```javascript
 export function setValidationRules(rules) {}
 ```
 
 ## Validator
-TODO: Describe requirements
 
-### Rule validation sequence
-For each property there might be _several rules_ that differ in whether and what conditions they have.
-E.g. some with permission conditions defined, others not.
-- First all rules whose permissions condition and property conditions are met needs to be 
-determined.
-- If there are no such rules all rules without any permissions condition and with matching property 
-conditions needs to be determined.
-- All matching rules are validated **in the order in which they are defined**, i.e. it is checked that 
-the implicit constraint (for _mandatory_ and _immutable_ rules) resp. explicit constraint 
-(for _content_ and _update_ rules)is fulfilled.
+A validator must provide API to validate _mandatory_ and _content rules_ of an entity type against the entity 
+instance that should be created resp. updated, taking into account the current user permissions.
 
-TODO: Example
+A validator must provide API to validate _immutable_ and _update rules_ of an entity type against the modified 
+entity instance that should be updated and the last (original) object version, taking into account the current 
+user permissions.
+
+All API methods must return a possibly empty list of error code according to 
+[Validation error codes](#validation-error-codes).
+
+> E.g. in [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
+> the class _Validator_ provides these methods:
+```java
+List<String> validateMandatoryRules(object, UserPermissions userPermissions, ValidationRules<?> rules)
+List<String> validateContentRules(object, UserPermissions userPermissions, ValidationRules<?> rules)
+List<String> validateImmutableRules(Object originalObject, Object modifiedObject, 
+        UserPermissions userPermissions, ValidationRules<?> rules)
+List<String> validateUpdateRules(Object originalObject, Object modifiedObject, 
+        UserPermissions userPermissions, ValidationRules<?> rules)
+```
+
+> E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides
+> quite similar functions:
+```javascript
+validateMandatoryRules(typeName, object, userPerms)
+validateContentRules(typeName, object, userPerms)
+validateImmutableRules(typeName, originalObject, modifiedObject, userPerms)
+validateUpdateRules(typeName, originalObject, modifiedObject, userPerms)
+```
 
 ### Validation error codes
-Whenever a validation rule is violated, a error code is generated. This code consists of a rule type specific prefix and
-a type specific suffix.
+Whenever a validation rule is violated, a error code is generated. This code consists of a rule type specific 
+prefix and a constraint specific suffix.
 
 The default error code prefix is:
 - `error.validation.mandatory.` for _mandatory_ rules
@@ -977,17 +1107,101 @@ The default error code prefix is:
 - `error.validation.content.` for _content_ rules
 - `error.validation.update.` for _update_ rules
 
-Any implementation must provide API methods to overwrite this defaults.
+Any validator implementation must provide API methods to overwrite this defaults.
 
 For _mandatory_ and _immutable_ rules the error code suffix is build by concatenating the name of the entity type and 
 the name of the property by using "." (full stop).<br>
 E.g.
-> error.validation.mandatory.article.responsibleUser
+> `error.validation.mandatory.article.responsibleUser`
 
 For _content_ and _update_ rules the error code suffix is build by concatenating the name of the constraint type in 
 lower case, the name of the entity type and the name of the property by using "." (full stop).<br>
 E.g.
-> error.validation.content.regex_any.article.name
+> `error.validation.content.regex_any.article.name`
+
+### Rule validation sequence
+For each property _several rules of one type_ may exist that differ in whether and what conditions resp. constraints
+they have. These rules should be evaluated **in the order in which they are defined**.
+
+TODO
+
+> Example of _content rules_ for the property _maintenanceNextDate_ with different content constraints and conditions:
+> 1. "The date must be 1 to 365 days in the future
+>   - if the user has the roles resp. permissions MANAGER.
+>   - and if it is entered at all (i.e. it is an optional property).
+> 1. "The date must be 10 to 365 days in the future
+>   - if the user has not the role resp. permission MANAGER.
+>   - and if it is entered at all (i.e. it is an optional property).
+> 1. "The date must be either a weekday (MONDAY to FRIDAY) or _null_
+> 
+> The JSON for these example rules would look similar to this:
+> [JsonMaintenanceNextDate.md](subpages/JsonMaintenanceNextDate.md)
+
+Evaluating a validation rule involves 3 steps
+1. If the rule has a _permissions constraint_ assigned and the user permissions _do not match_ this constraint 
+further evaluation of this rule can be skipped.
+2. If the rule has a _conditions constraint_ assigned and the object to be examined _does not match_ these conditions
+further evaluation of this rule can be skipped.
+3. Depending of the rule type, a rule has an implicit or an explicit content constraint:
+   - _mandatory rules_ have the implicit constraint "the property value must not be null" 
+   - _immutable rules_ have the implicit constraint "the edited property value must equal the last stored value"
+   - each _content rule_ and _update rule_ has its explicit constraint (e.g. "The date must be 1 to 365 days in the 
+   future")
+   
+   It has to be evaluated if this constraint is fulfilled or not. If it is not fulfilled, an error code has to be 
+   created and returned as described above.
+
+> Evaluating example 1:
+>
+> Evaluation of the example _content rules_ against this article instance and these user permissions
+>    ```javascript
+>    article = {
+>    "maintenanceNextDate": null
+>    // other properties omitted
+>    }
+>    userPerms = ["TRAINEE"]
+>    ```
+> will lead to these steps  
+> 1. The permissions constraint of rule 1 does not match because the user does not have the permission MANAGER. 
+>
+>     Therefore, further evaluation for rule 1 is skipped.
+> 1. The permissions constraint of rule 2 does match because the user does not have the permission MANAGER.
+>
+>    The condition "_maintenanceNextDate_ must not be null" of rule 2 is not fulfilled.
+>
+>    Therefore, further evaluation for rule 2 is skipped.
+> 1. Rule 3 does not have a permissions constraint or a condition constraint.
+>
+>    The content constraint of rule 3 is evaluated to _true_ because it contains the key/value pair 
+>     `"nullEqualsTo": true`
+>
+> As a result the property _maintenanceNextDate_ has been successfully validated.
+
+> Evaluating example 2:
+>
+> Evaluation of the example _content rules_ against this article instance and these user permissions
+>    ```javascript
+>    article = {
+>    "maintenanceNextDate": "2023-01-05"
+>    // other properties omitted
+>    }
+>    userPerms = ["MANAGER"]
+>    ```
+> will lead to these steps, assuming the evaluation date is "2023-01-02"  
+> 1. The permissions constraint of rule 1 does match because the user does have the permission MANAGER. 
+>
+>    The condition "_maintenanceNextDate_ must not be null" of rule 1 is fulfilled.
+>
+>    The content constraint is evaluated to _true_ for rule 1 bacasue the date is 3 days in the future.
+> 1. The permissions constraint of rule 2 does not match because the user does have the permission MANAGER.
+>
+>    Therefore, further evaluation for rule 2 is skipped.
+> 1. Rule 3 does not have a permissions constraint or a condition constraint.
+>
+>    The content constraint of rule 3 is evaluated to _false_ because the _maintenanceNextDate_ is a Sunday.
+>
+> As a result the validation of rule 3 has failed. The validation method returns the error code 
+> `error.validation.content.regex_any.article.name` - assuming that the default error code has not been changed.
 
 # Known implementations
 - [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
@@ -995,20 +1209,16 @@ E.g.
 - [Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
   a Validator and a Consumer for this schema in ECMAScript 6.
 
-
 # Thoughts about possible extensions
 - FUTURE_HOURS etc.?<br>
   E.g. to validate that a date is at least 6 hours in the future.
 
-- RANGE with "boundsIncluded":false?<br>
-  E.g. with `"min": "5"`, to validate that a value is _is greater_ than 5<br>
+- RANGE with `"boundsIncluded": false`?<br>
+  E.g. with `"min": 5`, to validate that a value is _is greater_ than 5<br>
 
 - RANGE_REF?<br>
   E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>
   or `"min": "dateProp"`, to validate that a date is not before the date of 'dateProp'
-
-- REGEX_NONE?<br>
-  E.g. to validate that a property value not match a regex
 
 - More terminal aggregate functions?<br>
   E.g. `foo[*]#min, foo[*]#max, foo[*]#avg, foo[*]#same, foo[*]increasing, ...`
@@ -1022,4 +1232,4 @@ E.g.
   see https://stackoverflow.com/questions/16742578/bigdecimal-in-javascript
 
 - Support for recursive properties?<br>
-  E.g. for chapters with (sub-)chapters etc. Syntax?: `object[R].name"` resp. `"chapters\[*][R].name"?`
+  E.g. for chapters with (sub-)chapters etc. Syntax?: `object(R).name"` resp. `"chapters[*](R).name"?`
