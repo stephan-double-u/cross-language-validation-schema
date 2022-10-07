@@ -1041,12 +1041,12 @@ implemented.
 ## JSON producer
 A JSON producer must provide an API to define all types of validation rules, i.e.
 - _mandatory_ and _immutable_ rules for properties
-  - optional with a [properties constraint](#properties-constraint)
+  - optional with a [permissions constraint](#permissions-constraint)
   - optional with [**one** conditions constraint](#conditions-constraint)
   - optional with an [error code control](#error-code-control)
 - _content_ and _update_ rules for properties
   - with a [content constraint](#content-constraint)
-  - optional with a [properties constraint](#properties-constraint)
+  - optional with a [permissions constraint](#permissions-constraint)
   - optional with [**one** conditions constraint](#conditions-constraint)
   - optional with an [error code control](#error-code-control)
   
@@ -1131,16 +1131,14 @@ E.g.
 For each property _several rules of one type_ may exist that differ in whether and what conditions resp. constraints
 they have. These rules should be evaluated **in the order in which they are defined**.
 
-TODO
-
 > Example of _content rules_ for the property _maintenanceNextDate_ with different content constraints and conditions:
 > 1. "The date must be 1 to 365 days in the future
 >   - if the user has the roles resp. permissions MANAGER.
 >   - and if it is entered at all (i.e. it is an optional property).
-> 1. "The date must be 10 to 365 days in the future
+> 2. "The date must be 10 to 365 days in the future
 >   - if the user has not the role resp. permission MANAGER.
 >   - and if it is entered at all (i.e. it is an optional property).
-> 1. "The date must be either a weekday (MONDAY to FRIDAY) or _null_
+> 3. "The date must be either a weekday (MONDAY to FRIDAY) or _null_
 > 
 > The JSON for these example rules would look similar to this:
 > [JsonMaintenanceNextDate.md](subpages/JsonMaintenanceNextDate.md)
