@@ -1002,7 +1002,6 @@ resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 Requirements:
 - At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
-- The values of the keys _min_ and _max_ must be **>= 0** (zero).
 
 ### WEEKDAY\_ANY
 The WEEKDAY_ANY constraint checks whether the value of the associated property is a date that matches any of the values
