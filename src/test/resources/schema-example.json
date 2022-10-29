@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.8",
+  "schemaVersion": "0.9",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -90,6 +90,46 @@
                 "constraint": {
                   "type": "SIZE",
                   "max": 2
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "QUARTER_ANY",
+                  "values": [
+                    1,
+                    3
+                  ]
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "QUARTER_ANY_REF",
+                  "values": [
+                    "someNumber",
+                    "otherNumber"
+                  ]
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "YEAR_ANY",
+                  "values": [
+                    1999,
+                    2022
+                  ]
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "YEAR_ANY_REF",
+                  "values": [
+                    "someNumber",
+                    "otherNumber"
+                  ]
                 }
               }
             ]
