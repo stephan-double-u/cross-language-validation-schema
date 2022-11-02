@@ -418,7 +418,7 @@
       "type": "object",
       "properties": {
         "type": { "type": "string" , "enum": ["WEEKDAY_ANY"] },
-        "days" : {
+        "values" : {
           "type": "array",
           "items": {
             "type": "string",
@@ -428,7 +428,7 @@
         },
         "nullEqualsTo": { "type": "boolean" }
       },
-      "required": ["type", "days"],
+      "required": ["type", "values"],
       "additionalProperties": false
     },
     "quarterConstraint": {

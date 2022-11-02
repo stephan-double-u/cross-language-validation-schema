@@ -43,7 +43,7 @@
             "property": "aDate",
             "constraint": {
               "type": "WEEKDAY_ANY",
-              "days": [
+              "values": [
                 "MONDAY", "TUESDAY"
               ],
               "nullEqualsTo": true

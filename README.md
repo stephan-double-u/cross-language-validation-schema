@@ -1025,12 +1025,12 @@ Requirements:
 
 ### WEEKDAY\_ANY
 The WEEKDAY_ANY constraint checks whether the value of the associated property is a date whose day matches one of 
-the values listed in the array named _days_.<br>
+the values listed in the array named _values_.<br>
 Example:
 ```json
     {
       "type": "WEEKDAY_ANY",
-      "days": ["SATURDAY", "SUNDAY"],
+      "values": ["SATURDAY", "SUNDAY"],
       "nullEqualsTo": true
 } 
 ```
@@ -1055,12 +1055,12 @@ Requirements:
 
 ### QUARTER\_ANY
 The QUARTER_ANY constraint checks whether the value of the associated property is a date whose quarter matches one of 
-the values listed in the array named _quarters_.<br>
+the values listed in the array named _values_.<br>
 Example:
 ```json
     {
       "type": "QUARTER_ANY",
-      "quarters": [1, 3],
+      "values": [1, 3],
       "nullEqualsTo": true
 } 
 ```
@@ -1071,7 +1071,7 @@ resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 Requirements:
 - The array must contain at least one value.
 - _Null_ values are not allowed.
-- The quarters must be of type _number_.
+- The values must be of type _number_.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
@@ -1104,12 +1104,12 @@ Requirements:
 
 ### YEAR\_ANY
 The YEAR_ANY constraint checks whether the value of the associated property is a date whose year matches one of 
-the values listed in the array named _years_.<br>
+the values listed in the array named _values_.<br>
 Example:
 ```json
     {
       "type": "YEAR_ANY",
-      "years": [2010, 2020, 2030],
+      "values": [2010, 2020, 2030],
       "nullEqualsTo": true
 } 
 ```
