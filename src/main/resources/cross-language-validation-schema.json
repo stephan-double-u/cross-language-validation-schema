@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.8"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.9"]},
     "mandatoryRules": { "$ref": "#/definitions/typeRules" },
     "immutableRules": { "$ref": "#/definitions/typeRules" },
     "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
@@ -193,7 +193,11 @@
         { "$ref": "#/definitions/regexConstraint" },
         { "$ref": "#/definitions/datesConstraint" },
         { "$ref": "#/definitions/periodConstraint" },
-        { "$ref": "#/definitions/weekdayConstraint" }
+        { "$ref": "#/definitions/weekdayConstraint" },
+        { "$ref": "#/definitions/quarterConstraint" },
+        { "$ref": "#/definitions/quarterRefConstraint" },
+        { "$ref": "#/definitions/yearConstraint" },
+        { "$ref": "#/definitions/yearRefConstraint" }
       ]
     },
     "errorCodeControl": {
@@ -414,7 +418,7 @@
       "type": "object",
       "properties": {
         "type": { "type": "string" , "enum": ["WEEKDAY_ANY"] },
-        "days" : {
+        "values" : {
           "type": "array",
           "items": {
             "type": "string",
@@ -424,7 +428,73 @@
         },
         "nullEqualsTo": { "type": "boolean" }
       },
-      "required": ["type", "days"],
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "quarterConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["QUARTER_ANY"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "quarterRefConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["QUARTER_ANY_REF"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "yearConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["YEAR_ANY"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "yearRefConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["YEAR_ANY_REF"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
       "additionalProperties": false
     }
   }

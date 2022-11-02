@@ -2,7 +2,7 @@
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/45g0kbNt
+https://www.jsonschemavalidator.net/s/Wsz2mt4S
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
@@ -53,6 +53,10 @@ should be done either by the writer or the reader.
     - [PAST\_DAYS](#past_days)
     - [PERIOD\_DAYS](#period_days)
     - [WEEKDAY\_ANY](#weekday_any)
+    - [QUARTER\_ANY](#quarter_any)
+    - [QUARTER\_ANY\_REF](#quarter_any_ref)
+    - [YEAR\_ANY](#year_any)
+    - [YEAR\_ANY\_REF](#year_any_ref)
 - [Requirements for an implementer](#requirements-for-an-implementer)
   - [JSON producer](#json-producer)
   - [JSON consumer](#json-consumer)
@@ -68,7 +72,7 @@ programming language. The resulting JSON documents are intended to be used in ap
 components possibly written in different programming languages where the rules have to be validated in several 
 components. E.g. in a frontend written in ES6 and a backend written in Java.
 
-One objective is to apply the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
+One objective is to apply the &#10169; [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) even for 
 validation rules, according to the motto "define once, validate everywhere".
 
 Of course this requires the implementation of generic _validators_ as well as the implementation of JSON _producers_ 
@@ -161,7 +165,7 @@ In a frontend the rule about a mandatory property can be used in 2 ways:
  - validate it _before_ the object is sent to the backend 
 and to display an error message at the form input field when the rule is violated.
 
-> E.g. the [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
+> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
 for the mandatory property _Name_ together with the corresponding error message like this:
 >
 > ![MandatoryInputField](images/MandatoryInputField.png)
@@ -183,7 +187,7 @@ property value has changed is done by _comparing the (possibly) edited property 
 
 In a frontend the rule about an immutable property can be used to display the form input field as disabled.
 
-> E.g. the [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
+> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
 > for the immutable property _status_ (only if the value is DECOMMISSIONED) like this:
 >
 > ![ImmutableInputField](images/ImmutableInputField.png)
@@ -393,27 +397,27 @@ broader sense.
 
 #### Names of simple properties
 For a _simple property_ it is simply the name of that property, e.g.
-- > "responsibleUser"
+- > `"responsibleUser"`
 
 #### Names of nested properties
 For a _nested property_ the key is build by concatenating the property names of the access path by using "." (full stop)
 separators, e.g. 
-- > "customer.address.city"
+- > `"customer.address.city"`
 
 #### Names with array index definitions
 For _properties of objects that are part of arrays_, the names of the array properties can be appended by an _array 
 index definition [x]_, where _x_ can be
 - a _single index value_ of the expected array position, e.g.
-  - > "medicalSets[0].articles[0].animalUse"
+  - > `"medicalSets[0].articles[0].animalUse"`
 - _a comma separated list_ of index values, e.g.
-  - > "medicalSets[1,2,3].articles[5,4].animalUse"
+  - > `"medicalSets[1,2,3].articles[5,4].animalUse"`
 - _a range definition_ of two index values separated by "-" (minus), e.g.
-  - > "medicalSets[1-3].articles[4-5].animalUse"
+  - > `"medicalSets[1-3].articles[4-5].animalUse"`
 - _a start-step definition_ of two values separated by "/" (slash), where the first value specifies the first
   array position and the second values defines the step size to the other array positions, e.g.
-  - > "medicalSets[2/1].articles[0/2].animalUse"
+  - > `"medicalSets[2/1].articles[0/2].animalUse"`
 - _a star (\*)_ as a shortcut for the start-step definition [0/1], e.g.
-  - > "medicalSets[\*].articles[\*].animalUse"
+  - > `"medicalSets[\*].articles[\*].animalUse"`
 
 All index values are _zero-based_.
 
@@ -421,14 +425,14 @@ All index values are _zero-based_.
 For property names that contain array index definitions, the names can be appended by a _terminal aggregate function_:
 - **\#sum**
   - This terminal aggregate function sums up the (numeric) values of all specified array elements, e.g.
-     > "articles[\*].accessories[\*].amount#sum"
+     > `"articles[\*].accessories[\*].amount#sum"`
 - **\#distinct**
   - This terminal aggregate function `#distinct` compares all specified array elements and returns _true_ if all are 
 different, otherwise _false_, e.g.
-    > "articles[\*].accessories[\*].name#distinct"
+    > `"articles[\*].accessories[\*].name#distinct"`
  
 ### The value of the pair
-The Value is an _array_ that may contain different types of [Condition objects](#condition-types-and-objects).
+The Value is an _array_ that may contain different types of [condition objects](#condition-types-and-objects).
 - For validation rules regarding **mandatory** and **immutable** properties the array **may be empty**. That means that 
   during the validation it is just checked if this property is _not null_ resp. if the property value has _not changed_.
 - For **content** and **update** validation rules the array **must not be empty**, because there must be at least one 
@@ -728,8 +732,8 @@ This constraint can be applied to properties of type:
 
 Requirements:
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) 
-format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be 
-interpreted as such.
+format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+- it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
@@ -757,11 +761,11 @@ This constraint can be applied to properties of type:
 - _boolean_
 
 Requirements:
-- The type of the associated property must equal the type of the properties referenced by the property names listed in the
-  array named _values_.
+- The type of the associated property must equal the type of the properties referenced by the property names listed 
+  in the array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-  interpreted as such.
+  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+- it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
@@ -791,8 +795,8 @@ Requirements:
 - The type of the associated property must equal the type of the properties referenced by the property names listed in the
   array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-  interpreted as such.
+  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+- it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
@@ -823,8 +827,8 @@ Requirements:
 - The type of the associated property must equal the type of the properties referenced by the property names listed in the
   array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) it should be
-  interpreted as such.
+  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+- it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
@@ -875,6 +879,18 @@ This constraint can be applied to properties of type:
 - _string_
 - _number_
 
+Requirements:
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+
+**NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features
+usually results from the lowest common denominator of the languages involved.
+For instance, a `REGEX_NONE` validation rule that should be 'shared' between a Java backend and a ES6 frontend, should
+not use _inline modifiers_ (e.g. `(?i)`), &#10169;
+[because ES6 has no support for it](https://en.wikipedia.org/wiki/Comparison_of_regular_expression_engines#Part_2).
+(At least as long as the ES6 implementation does not use externals libraries to augment their build-in regex
+capabilities, like e.g. &#10169; [XRegExp](https://xregexp.com/))
+
 ### REGEX\_NONE
 The REGEX_NONE constraint checks whether the value of the associated property does _not match_ any of the _regular
 expressions_ listed in the array named _values_.<br>
@@ -891,13 +907,17 @@ This constraint can be applied to properties of type:
 - _string_
 - _number_
 
+Requirements:
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+
 **NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features 
 usually results from the lowest common denominator of the languages involved. 
 For instance, a `REGEX_NONE` validation rule that should be 'shared' between a Java backend and a ES6 frontend, should 
-not use _inline modifiers_ (e.g. `(?i)`),
+not use _inline modifiers_ (e.g. `(?i)`), &#10169;
 [because ES6 has no support for it](https://en.wikipedia.org/wiki/Comparison_of_regular_expression_engines#Part_2).
 (At least as long as the ES6 implementation does not use externals libraries to augment their build-in regex 
-capabilities, like e.g. [XRegExp](https://xregexp.com/))
+capabilities, like e.g. &#10169; [XRegExp](https://xregexp.com/))
 
 ### SIZE
 The SIZE constraint validates that the size (resp. length) of the associated property value is between the number values
@@ -935,7 +955,7 @@ This constraint can be applied to properties of type:
 - _number_
 - _string_  - as long as the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ 
 (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 Requirements:
 - the values of the keys _min_ and _max_ must equal the type of the associated property.
@@ -955,7 +975,7 @@ Example:
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```) 
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 Requirements:
 - The key _min_ is mandatory.<br>
@@ -976,7 +996,7 @@ Example:
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 Requirements:
 - The key _min_ is mandatory.<br>
@@ -997,26 +1017,26 @@ Example:
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 Requirements:
 - At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 
 ### WEEKDAY\_ANY
-The WEEKDAY_ANY constraint checks whether the value of the associated property is a date that matches any of the values
-listed in the array named _days_.<br>
+The WEEKDAY_ANY constraint checks whether the value of the associated property is a date whose day matches one of 
+the values listed in the array named _values_.<br>
 Example:
 ```json
     {
       "type": "WEEKDAY_ANY",
-      "days": ["SATURDAY", "SUNDAY"],
+      "values": ["SATURDAY", "SUNDAY"],
       "nullEqualsTo": true
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
-(according to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
 
 Requirements:
 - The array may contain several weekday names from this list:
@@ -1028,6 +1048,105 @@ Requirements:
   - "SATURDAY"
   - "SUNDAY"
 - The array must contain at least one value.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
+
+
+### QUARTER\_ANY
+The QUARTER_ANY constraint checks whether the value of the associated property is a date whose quarter matches one of 
+the values listed in the array named _values_.<br>
+Example:
+```json
+    {
+      "type": "QUARTER_ANY",
+      "values": [1, 3],
+      "nullEqualsTo": true
+} 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Requirements:
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The values must be of type _number_.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
+
+### QUARTER\_ANY\_REF
+The QUARTER_ANY_REF constraint checks whether the value of the associated property is a date whose quarter matches
+any of the property values referenced by the property names listed in the array named _values_.<br>
+Example:
+```json
+    {
+      "type": "QUARTER_ANY_REF",
+      "values": [
+        "aNumberProperty",
+        "aNumberArray[*]"
+      ],
+      "nullEqualsTo": true
+} 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Requirements:
+- The type of the properties referenced by the property names listed must be _number_.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
+
+### YEAR\_ANY
+The YEAR_ANY constraint checks whether the value of the associated property is a date whose year matches one of 
+the values listed in the array named _values_.<br>
+Example:
+```json
+    {
+      "type": "YEAR_ANY",
+      "values": [2010, 2020, 2030],
+      "nullEqualsTo": true
+} 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Requirements:
+- The array must contain at least one value.
+- _Null_ values are not allowed.
+- The values must be of type _number_.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
+
+### YEAR\_ANY\_REF
+The YEAR_ANY_REF constraint checks whether the value of the associated property is a date whose year matches
+any of the property values referenced by the property names listed in the array named _values_.<br>
+Example:
+```json
+    {
+      "type": "YEAR_ANY_REF",
+      "values": [
+        "aNumberProperty",
+        "aNumberArray[*]"
+      ],
+      "nullEqualsTo": true
+} 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Requirements:
+- The type of the properties referenced by the property names listed must be _number_.
+- The array must contain at least one value.
+- _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
@@ -1049,7 +1168,7 @@ A JSON producer must provide an API to define all types of validation rules, i.e
   - optional with [**one** conditions constraint](#conditions-constraint)
   - optional with an [error code control](#error-code-control)
   
-> E.g. with [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
+> E.g. with &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
   a mandatory rule with dependencies to other properties (see example rule 6) can be defined like this:
 ```java
 static final ValidationRules<Article> RULES = new ValidationRules<>(Article.class);
@@ -1058,7 +1177,7 @@ RULES.mandatory("responsibleUser",
 ```
 
 A JSON producer must provide an API to serialize the validation rules of zero or more entity types to JSON.
-> E.g. in [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 
+> E.g. in &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 
 > the class _ValidationRules_ provides this static method:
 ```java
 String serializeToJson(ValidationRules<?>... rules)
@@ -1066,7 +1185,7 @@ String serializeToJson(ValidationRules<?>... rules)
 
 ## JSON consumer
 A consumer must provide an API to accept the JSON with the serialized validation rules.
-> E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides 
+> E.g. &#10169; [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides 
 > this function:
 ```javascript
 export function setValidationRules(rules) {}
@@ -1084,7 +1203,7 @@ user permissions.
 All API methods must return a possibly empty list of error code according to 
 [Validation error codes](#validation-error-codes).
 
-> E.g. in [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
+> E.g. in &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java)
 > the class _Validator_ provides these methods:
 ```java
 List<String> validateMandatoryRules(object, UserPermissions userPermissions, ValidationRules<?> rules)
@@ -1095,7 +1214,7 @@ List<String> validateUpdateRules(Object originalObject, Object modifiedObject,
         UserPermissions userPermissions, ValidationRules<?> rules)
 ```
 
-> E.g. [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides
+> E.g. &#10169; [CLV ECMAScript 6 implementation](https://github.com/stephan-double-u/cross-language-validation-es6) provides
 > quite similar functions:
 ```javascript
 validateMandatoryRules(typeName, object, userPerms)
@@ -1209,10 +1328,10 @@ further evaluation of this rule can be skipped.
 > `error.validation.content.regex_any.article.name` - assuming that the default error code has not been changed.
 
 # Known implementations
-- [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) implements a 
-  Validator and a Producer for this schema in Java.
-- [Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) implements
-  a Validator and a Consumer for this schema in ECMAScript 6.
+- &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 
+- implements a Validator and a Producer for this schema in Java.
+- &#10169; [Cross Language Validation ECMAScript 6](https://github.com/stephan-double-u/cross-language-validation-es6) 
+- implements a Validator and a Consumer for this schema in ECMAScript 6.
 
 # Thoughts about possible extensions
 - FUTURE_HOURS etc.?<br>
@@ -1237,4 +1356,4 @@ further evaluation of this rule can be skipped.
   see https://stackoverflow.com/questions/16742578/bigdecimal-in-javascript
 
 - Support for recursive properties?<br>
-  E.g. for chapters with (sub-)chapters etc. Syntax?: `object(R).name"` resp. `"chapters[*](R).name"?`
+  E.g. for chapters with (sub-)chapters etc. Syntax?: `child(R).name"` resp. `"chapters[*](R).name"?`
