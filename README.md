@@ -1,8 +1,8 @@
-# Cross Language Validation (CLV) Schema - V0.8
+# Cross Language Validation (CLV) Schema - V0.9
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/Wsz2mt4S
+https://www.jsonschemavalidator.net/s/IQbWKrK8
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
