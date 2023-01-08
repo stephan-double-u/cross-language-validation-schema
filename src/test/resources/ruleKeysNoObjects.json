@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "0.10",
+  "mandatoryRules": null,
+  "immutableRules": "foo",
+  "contentRules": [],
+  "updateRules": 42
+}

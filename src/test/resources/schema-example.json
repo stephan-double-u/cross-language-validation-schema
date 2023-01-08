@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.9",
+  "schemaVersion": "0.10",
   "mandatoryRules": {
     "reservation": {
       "customer.foo": [
@@ -581,6 +581,13 @@
   },
   "updateRules": {
     "reservation": {
+      "someString": [
+        {
+          "constraint": {
+            "type": "VALUE_UNCHANGED"
+          }
+        }
+      ],
       "someEnum": [
         {
           "constraint": {
@@ -681,14 +688,42 @@
               "EXPERT"
             ]
           },
-          "condition": {
-            "property": "someEnum",
-            "constraint": {
-              "type": "EQUALS_ANY",
-              "values": [
-                "FOUR"
-              ]
-            }
+          "conditionsGroup": {
+            "operator": "AND",
+            "conditions": [
+              {
+                "property": "someString",
+                "constraint": {
+                  "type": "EQUALS_ANY_REF",
+                  "values": [
+                    "articleList[0-2].name#distinct"
+                  ],
+                  "refTarget": "CURRENT_ENTITY"
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "QUARTER_ANY_REF",
+                  "values": [
+                    "someNumber",
+                    "otherNumber"
+                  ],
+                  "refTarget": "CURRENT_ENTITY"
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "YEAR_ANY_REF",
+                  "values": [
+                    "someNumber",
+                    "otherNumber"
+                  ],
+                  "refTarget": "UPDATE_ENTITY"
+                }
+              }
+            ]
           },
           "errorCodeControl": {
             "useType": "AS_REPLACEMENT",

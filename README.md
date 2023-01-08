@@ -1,8 +1,8 @@
-# Cross Language Validation (CLV) Schema - V0.9
+# Cross Language Validation (CLV) Schema - V0.10
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/IQbWKrK8
+https://www.jsonschemavalidator.net/s/ncYxXsrf
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
@@ -10,18 +10,18 @@ should be done either by the writer or the reader.
 ## Table of Contents
 - [TL;DR](#tldr)
 - [Motivation](#motivation)
-  - [Rule Types](#rule-types)
-    - [Mandatory Rules](#mandatory-rules)
-    - [Immutable Rules](#immutable-rules)
-    - [Content Rules](#content-rules)
-    - [Update Rules](#update-rules)
   - [Drawbacks of existing validation frameworks](#drawbacks-of-existing-validation-frameworks)
   - [Required features of a flexible and expressive validation framework](#required-features-of-a-flexible-and-expressive-validation-framework)
 - [Close-to-life example](#close-to-life-example)
-  - [Example objects](#example-objects)
+  - [Example entities](#example-entities)
   - [Example validation rules](#example-validation-rules)
-- [Documentation JSON structure](#documentation-json-structure)
-  - [Top-level content](#top-level-content)
+- [Documentation ](#documentation-)
+  - [Validation Rule Types](#validation-rule-types)
+    - [Content Rules](#content-rules)
+    - [Update Rules](#update-rules)
+    - [Mandatory Rules](#mandatory-rules)
+    - [Immutable Rules](#immutable-rules)
+  - [JSON structure](#json-structure)
   - [Entity Type related validation rules](#entity-type-related-validation-rules)
   - [Property related validation rules](#property-related-validation-rules)
     - [The key of the pair](#the-key-of-the-pair)
@@ -57,6 +57,8 @@ should be done either by the writer or the reader.
     - [QUARTER\_ANY\_REF](#quarter_any_ref)
     - [YEAR\_ANY](#year_any)
     - [YEAR\_ANY\_REF](#year_any_ref)
+    - [VALUE_CHANGED](#value_changed)
+    - [VALUE_UNCHANGED](#value_unchanged)
 - [Requirements for an implementer](#requirements-for-an-implementer)
   - [JSON producer](#json-producer)
   - [JSON consumer](#json-consumer)
@@ -67,7 +69,7 @@ should be done either by the writer or the reader.
 - [Thoughts about possible extensions](#thoughts-about-possible-extensions)
 
 # TL;DR
-The purpose of this _JSON Schema_ is to describe _a wide range validation rules_, independent of a specific 
+The purpose of this _JSON Schema_ is to describe _a wide range of validation rules_, independent of a specific 
 programming language. The resulting JSON documents are intended to be used in applications that involve multiple 
 components possibly written in different programming languages where the rules have to be validated in several 
 components. E.g. in a frontend written in ES6 and a backend written in Java.
@@ -89,9 +91,9 @@ With the &#10169; [CLV Java implementation](https://github.com/stephan-double-u/
 for this schema this validation rule can be defined like this: 
 ```java
 public class AnyClass {
-    static final ValidationRules<Article> ARTICLE_RULES = new ValidationRules<>(Article.class);
+    static final ValidationRules<Article> article_rules = new ValidationRules<>(Article.class);
     static {
-      ARTICLE_RULES.immutable("animalUse",
+      article_rules.immutable("animalUse",
             ConditionsTopGroup.OR(
                     ConditionsGroup.AND(
                             Condition.of("medicalSetId", Equals.notNull())),
@@ -104,10 +106,10 @@ public class AnyClass {
 This Java implementation is a _JSON provider_, i.e. it provides a method to serialize the validation rules to JSON.
 An application that uses this Java implementation can expose the JSON e.g. via a REST endpoint, e.g.:
 ```java
-    @GetMapping(value = "/validation-rules", produces = "application/json;charset=UTF-8")
-    public String getValidationRules(){
-        return ValidationRules.serializeToJson(ARTICLE_RULES);
-    }
+@GetMapping(value = "/validation-rules", produces = "application/json;charset=UTF-8")
+public String getValidationRules(){
+    return ValidationRules.serializeToJson(article_rules);
+}
 ```
 The JSON for the example rule would look similar to this: [JsonAnimalUse.md](subpages/JsonAnimalUse.md)
 
@@ -122,7 +124,7 @@ const getValidationRules = async () => {
     setValidationRules(rules);
 }
 ```
-Then it can e.g. check if an object property is immutable and should be displayed as _disabled_ like this:
+Then it can e.g. check if an entity property is immutable and should be displayed as _disabled_ like this:
 ```javascript
 // retrieved e.g. via GET /articles/12345
 article = {
@@ -150,95 +152,6 @@ The front-end of this application was written in JavaScript, while the back-end 
 Most of these validation rules should be utilized also on the client-side.
 On the one hand to provide good user guidance, on the other hand to avoid numerous client-server round trips.
 
-## Rule Types
-It has been shown that it is appropriate to distinguish four types of rules, which differ in their semantics and
-in the way they are validated.
-
-### Mandatory Rules
-Defining a property as _mandatory_ simply says that the value of that property _must not be null_ when the object resp. 
-the property gets validated.
-
-In a backend service the validation of such rules is usually done before an object is **created or updated**.
-
-In a frontend the rule about a mandatory property can be used in 2 ways:
- - decorate the corresponding form input field with a visual indicator
- - validate it _before_ the object is sent to the backend 
-and to display an error message at the form input field when the rule is violated.
-
-> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
-for the mandatory property _Name_ together with the corresponding error message like this:
->
-> ![MandatoryInputField](images/MandatoryInputField.png)
-
-Validation rules can depend on conditions about other object properties.
-> Example rule: "The property _name_ should be mandatory, but only if the property _status_ is not _NEW_". 
-
-Since _mandatory rules_ should also be validated when the object is created, these conditions 
-must be _evaluated against the object that should be created itself_.
-
-> To stay with our example: if the user has set _status_ to e.g. _ACTIVE_, it is evaluated if a _name_ has been 
-> entered as well.
-
-### Immutable Rules
-Defining a property as _immutable_ (a.k.a. _read-only_) says that the value of that property _must not be changed_.
-
-In a backend service the validation of such rules is usually done before an object is **updated**. Determining if a 
-property value has changed is done by _comparing the (possibly) edited property value with the last stored value_.
-
-In a frontend the rule about an immutable property can be used to display the form input field as disabled.
-
-> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the input field
-> for the immutable property _status_ (only if the value is DECOMMISSIONED) like this:
->
-> ![ImmutableInputField](images/ImmutableInputField.png)
-
-Validation rules can depend on conditions about other object properties.
-
-> Example rule: "The property _status_ must not be changed anymore if _status_ has been set to _DECOMMISSIONED_
-before".
-
-Since _immutable rules_ are validated **only** when the object is **updated**, these conditions 
-are _evaluated against the last stored object version_.
-
-> To stay with our example: given an object that has been saved with _status_ _DECOMMISSIONED_. 
-> If the user somehow manages to set _status_ to, say, _ACTIVE_, it is first evaluated whether the last stored 
-> _status_ value is _DECOMMISSIONED_ and then whether the edited value is equal to the stored value.
-
-### Content Rules
-Defining a _content rule_ for a property means setting a constraint on the possible values of that property.
-
-In a backend service the validation of such rules is usually done before an object is **created or updated**. 
-
-In a frontend _content rules_ are usually validated _before_ the object is sent to the backend.
-
-Validation rules can depend on conditions about other object properties.
-
-> Example rule: "The property _name_ must be at least 5 characters long, but only if the property _status_ is not
-_NEW_".
-
-Since _content rules_ (like _mandatory rules_) should also be validated when the object is created, these conditions
-must be evaluated against the object that should be created itself.
-
-> To stay with our example: if the user sets _status_ to e.g. _ACTIVE_ before pressing a _create_ button, it is 
-> evaluated if a _name_ with at least 5 characters has been entered as well.
-
-### Update Rules
-Like _content rules_, an _update rule_ for a property also sets a constraint on the possible values of that property.
-
-In contrast to _content rules_ and similar to _immutable rules_, an _update rule_ is validated **only** when the object 
-is **updated**. That means, that any conditions about other object properties the rule contains, are _evaluated 
-against the last stored object version_.
-
-That is, _update rules_ can be used to define _state transition validations_.
-
-> Example rule: "The _status_ can be updated from _ACTIVE_ resp. _INACTIVE_ to _ACTIVE_, _INACTIVE_ or 
-> _DECOMMISSIONED_".
-
-> Evaluation of the example rule: given an object that has been saved with _status_ _INACTIVE_.
-> If the user has set _status_ to, say, _DECOMMISSIONED_, it is first evaluated whether the last stored
-> _status_ is either _ACTIVE_ or _INACTIVE_ and then whether the edited value is _ACTIVE_, _INACTIVE_ or
-> _DECOMMISSIONED_.
-
 ## Drawbacks of existing validation frameworks
 At least for Java based apps the Java Bean Validation framework is the de-facto standard for validation, but it has 
 some shortcomings:
@@ -260,7 +173,7 @@ It should be possible to define validation rules
 - that may depend on individual user permissions
 
 # Close-to-life example
-The documentation of all kinds of possible validation rules is based loosely on this _close-to-life example_ to make the 
+The example validation rules in this documentation are based loosely on this _close-to-life example_ to make the 
 exemplary rules more descriptive.<br>
 > Let's say we work for a company that rents _medical equipment_.<br>
 > Each medical _article_ may contain several _accessories_.<br>
@@ -268,59 +181,60 @@ exemplary rules more descriptive.<br>
 > The equipment is stored in warehouses and delivered to customers locations, e.g. hospital or animal clinics.<br>
 > Staff members schedule _reservations_ on behalf of their customers.
 
-## Example objects
-These are example objects for the aforementioned entity types with some of their properties. The more technical 
+## Example entities
+These are example entities for the aforementioned entity types with some of their properties. The more technical 
 properties like _id_, _createdBy_ etc. are omitted:
 
 - Accessory
 ```json
-  {
-    "name": "Biopsy Forcep",
-    "amount": 1
-  }
+{
+  "name": "Biopsy Forcep",
+  "amount": 1
+}
 ```
 - Article
 ```json
-  {
-    "name": "Diagnostic Video Colonoscope",
-    "number": "DVC-H123T/Z",
-    "status": "ACTIVE",
-    "animalUse": "true",
-    "everLeftWarehouse": "false",
-    "medicalSetId": null,
-    "responsibleUser": null,
-    "accessories": [
-    ]
-  }
+{
+  "name": "Diagnostic Video Colonoscope",
+  "number": "DVC-H123T/Z",
+  "status": "ACTIVE",
+  "animalUse": "true",
+  "everLeftWarehouse": "false",
+  "medicalSetId": null,
+  "maintenanceNextDate": null,
+  "responsibleUser": null,
+  "accessories": [
+  ]
+}
 ```
 - MedicalSet
 ```json
-  {
-    "name": "Endoscope set advanced",
-    "number": "ESA-1",
-    "status": "COMMISSIONING",
-    "animalUse": "true",
-    "articles": [
-    ]
-  }
+{
+  "name": "Endoscope set advanced",
+  "number": "ESA-1",
+  "status": "COMMISSIONING",
+  "animalUse": "true",
+  "articles": [
+  ]
+}
 ```
 - Reservation with customer
 ```json
-  {
-    "status": "PREPARATION",
-    "startDate": "2021-02-01",
-    "endDate": "20121-02-28",
-    "customer": {
-      "name": "Estetical Pet Clinic",
-      "status": "GOLD",
-      "address": {
-        "city": "New York City",
-        "zipCode": "10001"
-      }
-    },
-    "medicalSets": [
-    ]
-  }
+{
+  "status": "PREPARATION",
+  "startDate": "2021-02-01",
+  "endDate": "20121-02-28",
+  "customer": {
+    "name": "Estetical Pet Clinic",
+    "status": "GOLD",
+    "address": {
+      "city": "New York City",
+      "zipCode": "10001"
+    }
+  },
+  "medicalSets": [
+  ]
+}
 ```
 
 ## Example validation rules
@@ -345,28 +259,237 @@ A fictitious requirements document could mention validation rules like this:
 9. A reservation not in status PREPARATION must contain 1 to 3 medical sets. If the customer has status PLATINUM, it may
    contain up to 5 medical sets.
 
-# Documentation JSON structure
-## Top-level content
-A valid JSON contains _5 key/value_ pairs:
+# Documentation 
+## Validation Rule Types
+It has been shown that it is appropriate to distinguish four types of rules, which differ in their semantics and
+in the way they are evaluated.<br>
+All validation rules (regardless of their type) have one thing in common: they specify (implicit or explicit)
+_constraints_ on the allowed values of object properties.<br>
+These _property constraints_ can specify the allowed values either _directly_ or _indirectly_.
+Directly by specifying fixed values resp. value ranges, indirectly by referring to other object properties
+whose values define the allowed values resp. value ranges.
+> Example constraint with _fixed values_:<br>
+> "The property _maintenanceNextDate_ must contain a date value which year **equals the year 2022**."
+
+> Example constraint with _referenced values_:<br>
+> "The property _maintenanceNextDate_ must contain a date value which year **equals the value of the property _year_**."
+
+TODO: improve rule type documentation
+
+### Content Rules
+Defining a _content rule_ for a property means setting a constraint on the possible values of that property.
+
+In a backend service the validation of such rules is usually done when an entity is **created or updated**.
+
+In a frontend _content rules_ are usually validated _before_ the entity is sent to the backend.
+
+Validation rules can depend on conditions about other object properties.
+
+> Example rule: "The property _name_ must be at least 10 characters long, but only if the property _status_ is not
+_NEW_".
+
+Since _content rules_ (like _mandatory rules_) should also be validated when the entity is _created_, these conditions
+_evaluated against the entity that should be created resp. updated_.
+
+<table>
+ <tr>
+  <td><i>Example create resp. update entity</i></td>
+ </tr>
+ <tr>
+  <td><pre>{
+  "name": "Shorty",
+  "status": "ACTIVE"
+}</pre>
+  </td>
+ </tr>
+</table>
+
+> To stay with our example: if the user sets _status_ to e.g. _ACTIVE_ before pressing a _create_ button, it is
+> evaluated if a _name_ with at least 10 characters has been entered as well.
+
+### Update Rules
+Like _content rules_, an _update rule_ for a property also sets a constraint on the possible values of that property.
+
+In contrast to _content rules_ and similar to _immutable rules_, an _update rule_ is validated **only** when the entity
+is **updated**. That means, that any conditions about other object properties the rule contains, are _evaluated
+against the last stored object version_, a.k.a. the _current entity_.
+
+That is, _update rules_ can be used to define _state transition validations_!
+
+> Example rule: "The _status_ can be updated from _ACTIVE_ resp. _INACTIVE_ to _ACTIVE_, _INACTIVE_ or
+> _DECOMMISSIONED_".
+
+<table>
+ <tr>
+  <td><i>Example update instance</i></td>
+  <td><i>Example current instance</i></td>
+ </tr>
+ <tr>
+  <td><pre>{
+  "status": "DECOMMISSIONED"
+}</pre>
+  </td>
+  <td><pre>{
+  "status": "INACTIVE"
+}</pre>
+  </td>
+ </tr>
+</table>
+
+> Evaluation of the example rule: given an object that has been saved with _status_ _INACTIVE_.
+> If the user has set _status_ to, say, _DECOMMISSIONED_, it is first evaluated whether the last stored
+> _status_ is either _ACTIVE_ or _INACTIVE_ and then whether the edited value is _ACTIVE_, _INACTIVE_ or
+> _DECOMMISSIONED_.
+
+### Mandatory Rules
+Defining a property as _mandatory_ simply says that the value of that property _must not be null_ when the
+entity resp. its property gets validated.
+
+In a backend service the validation of such rules is usually done when an entity is **created and updated**.
+
+In a frontend the rule about a mandatory property can be used in 2 ways:
+- decorate the corresponding form input field with a visual indicator
+- validate it _before_ the entity is sent to the backend
+  and to display an error message at the form input field when the rule is violated.
+
+> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo)
+> displays the input field for the mandatory property _name_ together with the corresponding error message like this:
+>
+> ![MandatoryInputField](images/MandatoryInputField.png)
+
+Validation rules can depend on conditions about other object properties.
+> Example rule: "The property _name_ should be mandatory, but only if the property _status_ is not _NEW_".
+
+Since _mandatory rules_ should also be validated when the entity is _created_, these conditions
+must be _evaluated against the entity that should be created resp. updated_.
+
+<table>
+ <tr>
+  <td>Example <i>create resp. update entity</i></td>
+ </tr>
+ <tr>
+  <td><pre>{
+  "name": null,
+  "status": "ACTIVE"
+}</pre>
+  </td>
+ </tr>
+</table>
+
+> To stay with our example: only if the user has set the _status_ to something different than _NEW_ (e.g. _ACTIVE_),
+> it is evaluated if a _name_ has been entered as well.
+
+### Immutable Rules
+Defining a property as _immutable_ (a.k.a. _read-only_) says that the value of that property _must not be changed_.
+
+In a backend service the validation of such rules is usually done when an entity is **updated**. Determining if a
+property value has changed is done by _comparing the (possibly) edited property value with the last stored value_.
+
+In a frontend the rule about an immutable property can be used to display the form input field as disabled.
+
+> E.g. the &#10169; [CLV Demo App](https://github.com/stephan-double-u/cross-language-validation-demo) displays the
+> input field for the immutable property _status_ if the value is DECOMMISSIONED like this:
+>
+> ![ImmutableInputField](images/ImmutableInputField.png)
+
+Validation rules can depend on conditions about other object properties or about the same object property itself.
+
+> Example rule: "The property _status_ must not be changed anymore if _status_ has been set to _DECOMMISSIONED_
+before".
+
+Since _immutable rules_ can only be validated when the entity is **updated**, two entities exist against which
+the rule could be evaluated: the _update entity_ (e.g. the entity send by a PUT request) and the _current entity_
+with the last saved entity state. Conditions of _immutable rules_ are evaluated against the _current instance_ by
+default.
+
+<table>
+ <tr>
+  <td>Example <i>update entity</i></td>
+  <td>Example <i>current entity</i></td>
+ </tr>
+ <tr>
+  <td><pre>{
+  "status": "ACTIVE"
+}</pre>
+  </td>
+  <td><pre>{
+  "status": "DECOMMISSIONED"
+}</pre>
+  </td>
+ </tr>
+</table>
+
+> To stay with our example:<br>
+> Given an object that has been saved with _status_ _DECOMMISSIONED_.
+> The user manages somehow<sup>*</sup> to set _status_ to, say, _ACTIVE_. It is first evaluated whether the last
+> stored _status_ value is _DECOMMISSIONED_ (=> _true_) and then whether the edited value is equal to the
+> stored value (=> _false_). As a result the validation of that rule fails.
+
+<sup>*</sup> The CLV Demo App doesn't allow to change the status in the first place, because it sets the field to
+the state _disabled_ if _status_ is _DECOMMISSIONED_.
+
+When it comes to _reference constraints_, it might be necessary to not access the values of the _current entity_
+but of the entity that gets updated (_update entity_).
+Therefore, it must be possible to specify that the _update entity_ should be referenced.
+
+> Example rule: "The property _status_ must not be changed as long as no value has been entered for
+> _maintenanceNextDate_".
+
+<table>
+ <tr>
+  <td>Example <i>update entity</i></td>
+  <td>Example <i>current entity</i></td>
+ </tr>
+ <tr>
+  <td><pre>{
+  "status": "ACTIVE",
+  "maintenanceNextDate": null
+}</pre>
+  </td>
+  <td><pre>{
+  "status": "NEW",
+  "maintenanceNextDate": "2022-01-01"
+}</pre>
+  </td>
+ </tr>
+</table>
+
+> Evaluation of the example rule:<br>
+> It is first evaluated whether the property _maintenanceNextDate_ of the _update entity_ is _null_ (=> _true_).<br>
+> Then whether the value of the property _status_ of the _update entity_ equals the current value (=> _false_).<br>
+> As a result the validation of that rule fails.
+
+
+## JSON structure
+A valid JSON document consists of _up to 5 key/value_ pairs, whereas only the first one is mandatory:
 - Key _schemaVersion_
   - its value is a string that specifies the version of the JSON schema in use.
 - Key _mandatoryRules_
   - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
-    mandatory properties.
+    mandatory properties. The object may be empty.
 - Key _immutableRules_ 
   - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
-    immutable properties.
+    immutable properties. The object may be empty.
 - Key _contentRules_ 
   - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding 
-    the content of properties.
+    the content of properties. The object may be empty.
 - Key _updateRules_ 
   - its value is an object that contains a key/value pair for each _entity type_ that has validation rules regarding the
-    allowed transitions between the original and the changed property content during an entity update.
+    allowed transitions between the original and the changed property content during an entity update. The object may 
+    be empty.
 
-Thus, the most minimal valid JSON file (i.e. a file that does not contain any validation rule at all) look like this:
+Thus, the most minimal valid JSON document (i.e. a file that does not contain any validation rule at all) look like 
+this:
 ```json
 {
-  "schemaVersion": "0.7",
+  "schemaVersion": "0.10"
+}
+```
+A valid JSON document without any validation rule can also be specified by adding the above-mentioned keys with empty 
+object values:
+```json
+{
+  "schemaVersion": "0.10",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
@@ -377,15 +500,15 @@ Thus, the most minimal valid JSON file (i.e. a file that does not contain any va
 ## Entity Type related validation rules
 Validation rules regarding the properties of an entity type are defined by a key/value pair where the key is the name 
 of the entity type.<br>
-The value is an object that _may contain_ a key/value pair for any property related validation rule
-of that type.<br>
+The value is an object that contains a key/value pair for each property related validation rule
+of that type. The object may be empty.<br>
 A possible value for one of the above-mentioned `*Rules` keys:
 ```json
-  {
-    "article": {},
-    "customer": {},
-    "reservation": {}
-  }
+{
+  "article": {},
+  "customer": {},
+  "reservation": {}
+}
 ```
 
 ## Property related validation rules
@@ -417,7 +540,7 @@ index definition [x]_, where _x_ can be
   array position and the second values defines the step size to the other array positions, e.g.
   - > `"medicalSets[2/1].articles[0/2].animalUse"`
 - _a star (\*)_ as a shortcut for the start-step definition [0/1], e.g.
-  - > `"medicalSets[\*].articles[\*].animalUse"`
+  - > `"medicalSets[*].articles[*].animalUse"`
 
 All index values are _zero-based_.
 
@@ -425,11 +548,11 @@ All index values are _zero-based_.
 For property names that contain array index definitions, the names can be appended by a _terminal aggregate function_:
 - **\#sum**
   - This terminal aggregate function sums up the (numeric) values of all specified array elements, e.g.
-     > `"articles[\*].accessories[\*].amount#sum"`
+     > `"articles[*].accessories[*].amount#sum"`
 - **\#distinct**
   - This terminal aggregate function `#distinct` compares all specified array elements and returns _true_ if all are 
 different, otherwise _false_, e.g.
-    > `"articles[\*].accessories[\*].name#distinct"`
+    > `"articles[*].accessories[*].name#distinct"`
  
 ### The value of the pair
 The Value is an _array_ that may contain different types of [condition objects](#condition-types-and-objects).
@@ -438,14 +561,16 @@ The Value is an _array_ that may contain different types of [condition objects](
 - For **content** and **update** validation rules the array **must not be empty**, because there must be at least one 
   statement about the _expected content_ of the property the rule is defined for.
 
-Possible mandatory rules for the entity type `reservation`:
 > JSON for example validation rule: "The city of the customer address for a reservation is mandatory":
 ```json
+{
+  "schemaVersion": "0.10",
   "mandatoryRules": {
     "reservation": {
       "customer.address.city": []
     }
   }
+}
 ```
 
 ## Condition types and objects
@@ -462,6 +587,8 @@ This type of condition _is required for **content** and **update** rules_ and _n
 **mandatory** and **immutable** ones_.
 > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
 ```json
+{
+  "schemaVersion": "0.10",
   "contentRules": {
     "article": {
       "name": [
@@ -475,6 +602,7 @@ This type of condition _is required for **content** and **update** rules_ and _n
       ]
     }
   }
+}
 ```
 
 ### Permissions constraint
@@ -501,6 +629,8 @@ does not have any permission from the _values_ array.
 > JSON for example validation rule: "The article name must not be modified if the user (who wants to 
 > update the object) owns any of the role resp. permission APPRENTICE or READ_ONLY":
 ```json
+{
+  "schemaVersion": "0.10",
   "immutableRules": {
     "article": {
       "name": [
@@ -516,13 +646,14 @@ does not have any permission from the _values_ array.
       ]
     }
   }
+}
 ```
 
 ### Conditions constraint
 Often the decision whether to apply a validation rule depends on the state of _other properties_.
 Or even on the state of the same properties, in case of changing the value of the property during an update.
 The expectations about the condition of these properties are described in a third key/value pair.<br>
-This pair _is required for **update** rules_.<br>
+This pair is optional.<br>
 If there are more than one of these conditions, they have to be connected either via a logical _AND operation_, an _OR 
 operation_ or even both.<br>
 Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to define logical expressions like:
@@ -533,7 +664,7 @@ Let _a, b, c_ and _d_ be 4 of these conditions. Then it should be possible to de
 
 and similar variants.<br>
 Depending on the _number of these conditions_ and _how they are logically connected_, there are _three variants_ of 
-this third key/value pair
+this third key/value pair:
 
 #### Single condition
 If a single of these conditions exists, the key of the third pair is _condition_, where the value is an object with 2 
@@ -541,24 +672,27 @@ key/value pairs: the key of one pair is _property_, its value is the name of the
 defined for (as defined in [Property related validation rules](#Property-related-validation-rules)).
 The key of the other pair is _constraint_, its value is an [elementary constraint object](#Elementary-constraints)
 
-> JSON for example validation rule: "If an article is used for the first time, it has to be flagged as such.
-> This flag must never be reset":
+> JSON for example validation rule: "If an article is shipped to any customer for the first time, it is flagged as such
+> by setting the property _everLeftWarehouse_ to _true_. This flag must never be reset":
 ```json
-"immutableRules": {
-  "article": {
-    "everLeftWarehouse": [
-      {
-        "condition": {
-          "property": "everLeftWarehouse",
-          "constraint": {
-            "type": "EQUALS_ANY",
-            "values": [
-              true
-            ]
+{
+  "schemaVersion": "0.10",
+  "immutableRules": {
+    "article": {
+      "everLeftWarehouse": [
+        {
+          "condition": {
+            "property": "everLeftWarehouse",
+            "constraint": {
+              "type": "EQUALS_ANY",
+              "values": [
+                true
+              ]
+            }
           }
         }
-      }
-    ]
+      ]
+    }
   }
 }
 ```
@@ -572,6 +706,8 @@ array of [elementary constraint objects](#Elementary-constraints).
 > JSON for example validation rule: "The animalUse property of an article must not be changed if it has been
 > used once for animals":
 ```json
+{
+  "schemaVersion": "0.10",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -603,6 +739,7 @@ array of [elementary constraint objects](#Elementary-constraints).
       ]
     }
   }
+}
 ```
 
 #### Conditions Top Group
@@ -614,6 +751,8 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
 > JSON for example validation rule: "The animalUse property of an article must not be changed if (a) it is
 > assigned to a medical set, or (b) it has been used once for animals":
 ```json
+{
+  "schemaVersion": "0.10",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -661,6 +800,7 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
       ]
     }
   }
+}
 ```
 
 ### Error code control
@@ -675,6 +815,8 @@ the key _errorCodeControl_ whose value is an object with two key/value pairs:
 
 Example JSON for _useType_ _AS_SUFFIX_:
 ```json
+{
+  "schemaVersion": "0.10",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -687,9 +829,12 @@ Example JSON for _useType_ _AS_SUFFIX_:
       ]
     }
   }
+}
 ```
 Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
+{
+  "schemaVersion": "0.10",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -702,28 +847,29 @@ Example JSON for _useType_ _AS_REPLACEMENT_:
       ]
     }
   }
+}
 ```
 
 ## Elementary constraints
-An elementary constraint is used as a _content constraint_ or within conditions for "related properties", i.e. it 
-is used as the _value of any constraint key_.
+An elementary constraint is used as a _property constraint_ or within a conditions contraint , i.e. it 
+is used as the _value of any constraint key_.<br>
 It is an object consisting of one or more key/value pairs.<br>
-The key of the first pair is always _type_, its value is a string stating the type of the constraint. Each type can have 
-further type-specific key/value pairs.
+The key of the first pair is always _type_, its value is a string stating the type of the constraint. Each type can
+have further type-specific key/value pairs.
 
 ### EQUALS\_ANY
 The EQUALS_ANY constraint checks whether the value of the associated property matches any of the values listed in the
 array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "EQUALS_ANY",
-      "values": [
-        "ACTIVE",
-        "INACTIVE"
-      ],
-      "nullEqualsTo": true
-    }
+{
+  "type": "EQUALS_ANY",
+  "values": [
+    "ACTIVE",
+    "INACTIVE"
+  ],
+  "nullEqualsTo": true
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -733,7 +879,7 @@ This constraint can be applied to properties of type:
 Requirements:
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) 
 format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
-- it should be interpreted as such.
+it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
@@ -746,14 +892,15 @@ value of the associated property equals any of the property values referenced by
 named _values_.<br>
 Example:
 ```json
-    {
-      "type": "EQUALS_ANY_REF",
-      "values": [
-        "articles[0].status",
-        "articles[1].status"
-      ],
-      "nullEqualsTo": true
-    }
+{
+  "type": "EQUALS_ANY_REF",
+  "values": [
+    "articles[0].status",
+    "articles[1].status"
+  ],
+  "nullEqualsTo": true,
+  "refTarget": "CURRENT_ENTITY"
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -764,27 +911,33 @@ Requirements:
 - The type of the associated property must equal the type of the properties referenced by the property names listed 
   in the array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
-- it should be interpreted as such.
+format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
+- The optional key `refTarget` can be used to specify to which entity the referenced properties belong. It is only
+allowed in _immutable and update rules_.
+  - The possible values are CURRENT_ENTITY and UPDATE_ENTITY
+  - If this constraint is used as a _conditions constraint_, the `refTarget` defaults to CURRENT_ENTITY.
+  - If this constraint is used as the _property constraint_ (which is only possible in an _update rule_),
+  the `refTarget` defaults to UPDATE_ENTITY. 
 
 ### EQUALS\_NONE
 The EQUALS_NONE constraint checks whether the value of the associated property does _not match_ any of the values listed
 in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "EQUALS_NONE",
-      "values": [
-        "NEW",
-        "DECOMMISSIONED"
-      ],
-      "nullEqualsTo": false
-    }
+{
+  "type": "EQUALS_NONE",
+  "values": [
+    "NEW",
+    "DECOMMISSIONED"
+  ],
+  "nullEqualsTo": false
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -793,14 +946,14 @@ This constraint can be applied to properties of type:
 
 Requirements:
 - The type of the associated property must equal the type of the properties referenced by the property names listed in the
-  array named _values_.
+array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
-- it should be interpreted as such.
+format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6))  
+it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
-  the associated property is _null_.
+the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _true_.
 
 ### EQUALS\_NONE\_REF
@@ -809,14 +962,15 @@ value of the associated property does _not match_ any of the property values ref
 the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "EQUALS_NONE_REF",
-      "values": [
-        "articles[0].status",
-        "articles[1].status"
-      ],
-      "nullEqualsTo": false
-    }
+{
+  "type": "EQUALS_NONE_REF",
+  "values": [
+    "articles[0].status",
+    "articles[1].status"
+  ],
+  "nullEqualsTo": false,
+  "refTarget": "CURRENT_ENTITY"
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -825,22 +979,28 @@ This constraint can be applied to properties of type:
 
 Requirements:
 - The type of the associated property must equal the type of the properties referenced by the property names listed in the
-  array named _values_.
+array named _values_.
 - If the string complies to the _date_ (e.g. ```"2022-12-31"```) resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```)
-  format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
-- it should be interpreted as such.
+format (according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)) 
+it should be interpreted as such.
 - The array must contain at least one value.
 - _Null_ values are not allowed.
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
-  the associated property is _null_.
+the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _true_.
+- The optional key `refTarget` can be used to specify to which entity the referenced properties belong. It is only
+  allowed in _immutable and update rules_.
+  - The possible values are CURRENT_ENTITY and UPDATE_ENTITY
+  - If this constraint is used as a _conditions constraint_, the `refTarget` defaults to CURRENT_ENTITY.
+  - If this constraint is used as the _property constraint_ (which is only possible in an _update rule_),
+    the `refTarget` defaults to UPDATE_ENTITY.
 
 ### EQUALS\_NULL
 The EQUALS_NULL constraint checks whether the value of the associated property is _null_.
 ```json
-    {
-      "type": "EQUALS_NULL"
-    }
+{
+  "type": "EQUALS_NULL"
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -852,9 +1012,9 @@ This constraint can be applied to properties of type:
 ### EQUALS\_NOT\_NULL
 The EQUALS_NOT_NULL constraint checks whether the value of the associated property is _not null_.
 ```json
-    {
-      "type": "EQUALS_NOT_NULL"
-    }
+{
+  "type": "EQUALS_NOT_NULL"
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -868,7 +1028,7 @@ The REGEX_ANY constraint checks whether the value of the associated property doe
 expressions_ listed in the array named _values_.<br>
 Example:
 ```json
-    {
+{
   "type": "REGEX_ANY",
   "values": [
     "^[0-9]{5}$"
@@ -896,12 +1056,12 @@ The REGEX_NONE constraint checks whether the value of the associated property do
 expressions_ listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "REGEX_NONE",
-      "values": [
-        "forbidden"
-      ]
-    }
+{
+  "type": "REGEX_NONE",
+  "values": [
+    "forbidden"
+  ]
+}
 ```
 This constraint can be applied to properties of type:
 - _string_
@@ -924,11 +1084,11 @@ The SIZE constraint validates that the size (resp. length) of the associated pro
 of the keys _min_ resp. _max_.<br>
 Example:
 ```json
-    {
-      "type": "SIZE",
-      "min": 0,
-      "max": 10
-    }
+{
+  "type": "SIZE",
+  "min": 0,
+  "max": 10
+}
 ```
 This constraint can be applied to properties of type:
 - _string_ : the size of a string corresponds to the number of string characters.
@@ -945,11 +1105,11 @@ The RANGE constraint checks whether the value of the associated property is with
 the keys _min_ and _max_.<br>
 Example:
 ```json
-    {
-      "type": "RANGE",
-      "min": 0,
-      "max": 10
-    }
+{
+  "type": "RANGE",
+  "min": 0,
+  "max": 10
+}
 ```
 This constraint can be applied to properties of type:
 - _number_
@@ -963,15 +1123,16 @@ Requirements:
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.
 
 ### FUTURE\_DAYS
-The FUTURE_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the future_.<br>
+The FUTURE_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at 
+most _max_ days _in the future_.<br>
 The number of days are defined as values of the keys _min_ and _max_.<br>
 Example:
 ```json
-    {
-      "type": "FUTURE_DAYS",
-      "min": 0,
-      "max": 90
-    }
+{
+  "type": "FUTURE_DAYS",
+  "min": 0,
+  "max": 90
+}
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```) 
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
@@ -984,15 +1145,16 @@ Requirements:
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 
 ### PAST\_DAYS
-The PAST_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at most _max_ days _in the past_.<br>
+The PAST_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at 
+most _max_ days _in the past_.<br>
 The number of days are defined as values of the keys _min_ and _max_.<br>
 Example:
 ```json
-    {
-      "type": "PAST_DAYS",
-      "min": 0,
-      "max": 365
-    }
+{
+  "type": "PAST_DAYS",
+  "min": 0,
+  "max": 365
+}
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
@@ -1005,15 +1167,18 @@ Requirements:
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
 
 ### PERIOD\_DAYS
-The PERIOD_DAYS constraint checks whether the value of the associated property is a date that is 0 or more days _in the
-past_. The number of days is defined as value of the key _days_.<br>
+The PERIOD_DAYS constraint checks whether the value of the associated property lies within the period defined by the 
+_min_ and _max_ values.<br>
+It is intended to be used in situations where the period starts in the past (i.e. _min_ is negative) and ends 
+in the future  (i.e. _max_ is positive). Because if both bounds are negative resp. positive, a PAST resp. a FUTURE
+constraint could be used. But this is not mandatory.
 Example:
 ```json
-    {
-      "type": "PERIOD_DAYS",
-      "min": -365,
-      "max": 365
-    } 
+{
+  "type": "PERIOD_DAYS",
+  "min": -365,
+  "max": 365
+} 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
 resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
@@ -1028,10 +1193,10 @@ The WEEKDAY_ANY constraint checks whether the value of the associated property i
 the values listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "WEEKDAY_ANY",
-      "values": ["SATURDAY", "SUNDAY"],
-      "nullEqualsTo": true
+{
+  "type": "WEEKDAY_ANY",
+  "values": ["SATURDAY", "SUNDAY"],
+  "nullEqualsTo": true
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1058,10 +1223,10 @@ The QUARTER_ANY constraint checks whether the value of the associated property i
 the values listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "QUARTER_ANY",
-      "values": [1, 3],
-      "nullEqualsTo": true
+{
+  "type": "QUARTER_ANY",
+  "values": [1, 3],
+  "nullEqualsTo": true
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1081,13 +1246,14 @@ The QUARTER_ANY_REF constraint checks whether the value of the associated proper
 any of the property values referenced by the property names listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "QUARTER_ANY_REF",
-      "values": [
-        "aNumberProperty",
-        "aNumberArray[*]"
-      ],
-      "nullEqualsTo": true
+{
+  "type": "QUARTER_ANY_REF",
+  "values": [
+    "aNumberProperty",
+    "aNumberArray[*]"
+  ],
+  "nullEqualsTo": true,
+  "refTarget": "CURRENT_ENTITY"
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1101,16 +1267,22 @@ Requirements:
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
+- The optional key `refTarget` can be used to specify to which entity the referenced properties belong. It is only
+  allowed in _immutable and update rules_.
+  - The possible values are CURRENT_ENTITY and UPDATE_ENTITY
+  - If this constraint is used as a _conditions constraint_, the `refTarget` defaults to CURRENT_ENTITY.
+  - If this constraint is used as the _property constraint_ (which is only possible in an _update rule_),
+    the `refTarget` defaults to UPDATE_ENTITY.
 
 ### YEAR\_ANY
 The YEAR_ANY constraint checks whether the value of the associated property is a date whose year matches one of 
 the values listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "YEAR_ANY",
-      "values": [2010, 2020, 2030],
-      "nullEqualsTo": true
+{
+  "type": "YEAR_ANY",
+  "values": [2010, 2020, 2030],
+  "nullEqualsTo": true
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1130,13 +1302,14 @@ The YEAR_ANY_REF constraint checks whether the value of the associated property 
 any of the property values referenced by the property names listed in the array named _values_.<br>
 Example:
 ```json
-    {
-      "type": "YEAR_ANY_REF",
-      "values": [
-        "aNumberProperty",
-        "aNumberArray[*]"
-      ],
-      "nullEqualsTo": true
+{
+  "type": "YEAR_ANY_REF",
+  "values": [
+    "aNumberProperty",
+    "aNumberArray[*]"
+  ],
+  "nullEqualsTo": true,
+  "refTarget": "CURRENT_ENTITY"
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1150,7 +1323,42 @@ Requirements:
 - The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
   the associated property is _null_.
 - For this constraint the _nullEqualsTo_ default value is _false_.
+- The optional key `refTarget` can be used to specify to which entity the referenced properties belong. It is only
+  allowed in _immutable and update rules_.
+  - The possible values are CURRENT_ENTITY and UPDATE_ENTITY
+  - If this constraint is used as a _conditions constraint_, the `refTarget` defaults to CURRENT_ENTITY.
+  - If this constraint is used as the _property constraint_ (which is only possible in an _update rule_),
+    the `refTarget` defaults to UPDATE_ENTITY.
 
+### VALUE_CHANGED
+This constraint checks whether the value of the associated property has been changed or not.<br>
+It is only allowed for _update rules_ and _immutable rules_.
+```json
+{
+  "type": "VALUE_CHANGED"
+} 
+```
+This constraint can be applied to properties of type:
+- _string_
+- _number_
+- _boolean_
+- _array_
+- _object_
+
+### VALUE_UNCHANGED
+This constraint checks whether the value of the associated property has not been changed or not.<br>
+It is only allowed for _update rules_ and _immutable rules_.
+```json
+{
+  "type": "VALUE_UNCHANGED"
+} 
+```
+This constraint can be applied to properties of type:
+- _string_
+- _number_
+- _boolean_
+- _array_
+- _object_
 
 # Requirements for an implementer
 An implementation for this schema must meet the following requirements. These requirements depend on which part is 
@@ -1251,10 +1459,10 @@ they have. These rules should be evaluated **in the order in which they are defi
 
 > Example of _content rules_ for the property _maintenanceNextDate_ with different content constraints and conditions:
 > 1. "The date must be 1 to 365 days in the future
->   - if the user has the roles resp. permissions MANAGER.
+>   - if the user has the role resp. permission MANAGER.
 >   - and if it is entered at all (i.e. it is an optional property).
 > 2. "The date must be 10 to 365 days in the future
->   - if the user has not the role resp. permission MANAGER.
+>   - if the user does not have the role resp. permission MANAGER.
 >   - and if it is entered at all (i.e. it is an optional property).
 > 3. "The date must be either a weekday (MONDAY to FRIDAY) or _null_
 > 
@@ -1264,7 +1472,7 @@ they have. These rules should be evaluated **in the order in which they are defi
 Evaluating a validation rule involves 3 steps
 1. If the rule has a _permissions constraint_ assigned and the user permissions _do not match_ this constraint 
 further evaluation of this rule can be skipped.
-2. If the rule has a _conditions constraint_ assigned and the object to be examined _does not match_ these conditions
+2. If the rule has _conditions constraints_ assigned and the object to be examined _does not match_ these conditions
 further evaluation of this rule can be skipped.
 3. Depending of the rule type, a rule has an implicit or an explicit content constraint:
    - _mandatory rules_ have the implicit constraint "the property value must not be null" 
@@ -1286,15 +1494,15 @@ further evaluation of this rule can be skipped.
 >    userPerms = ["TRAINEE"]
 >    ```
 > will lead to these steps  
-> 1. The permissions constraint of rule 1 does not match because the user does not have the permission MANAGER. 
+> 1. The permissions constraint of rule 1 _does not match_ because the user does not have the permission MANAGER. 
 >
 >     Therefore, further evaluation for rule 1 is skipped.
-> 1. The permissions constraint of rule 2 does match because the user does not have the permission MANAGER.
+> 1. The permissions constraint of rule 2 _does match_ because the user does not have the permission MANAGER.
 >
 >    The condition "_maintenanceNextDate_ must not be null" of rule 2 is not fulfilled.
 >
 >    Therefore, further evaluation for rule 2 is skipped.
-> 1. Rule 3 does not have a permissions constraint or a condition constraint.
+> 1. Rule 3 does not have a permissions constraint or a conditions constraint.
 >
 >    The content constraint of rule 3 is evaluated to _true_ because it contains the key/value pair 
 >     `"nullEqualsTo": true`
@@ -1312,20 +1520,21 @@ further evaluation of this rule can be skipped.
 >    userPerms = ["MANAGER"]
 >    ```
 > will lead to these steps, assuming the evaluation date is "2023-01-02"  
-> 1. The permissions constraint of rule 1 does match because the user does have the permission MANAGER. 
+> 1. The permissions constraint of rule 1 does match because the user has the permission MANAGER. 
 >
 >    The condition "_maintenanceNextDate_ must not be null" of rule 1 is fulfilled.
 >
->    The content constraint is evaluated to _true_ for rule 1 bacasue the date is 3 days in the future.
-> 1. The permissions constraint of rule 2 does not match because the user does have the permission MANAGER.
+>    The content constraint is evaluated to _true_ for rule 1 because the date is 3 days in the future.
+> 1. The permissions constraint of rule 2 does not match because the user has the permission MANAGER.
 >
 >    Therefore, further evaluation for rule 2 is skipped.
-> 1. Rule 3 does not have a permissions constraint or a condition constraint.
+> 1. Rule 3 does not have a permissions constraint or a conditions constraint.
 >
 >    The content constraint of rule 3 is evaluated to _false_ because the _maintenanceNextDate_ is a Sunday.
 >
 > As a result the validation of rule 3 has failed. The validation method returns the error code 
-> `error.validation.content.regex_any.article.name` - assuming that the default error code has not been changed.
+> `error.validation.content.weekday_any.article.maintenanceNextDate` - assuming that the default error code has not 
+> been changed.
 
 # Known implementations
 - &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 
@@ -1334,11 +1543,11 @@ further evaluation of this rule can be skipped.
 - implements a Validator and a Consumer for this schema in ECMAScript 6.
 
 # Thoughts about possible extensions
-- FUTURE_HOURS etc.?<br>
+- FUTURE_HOURS?<br>
   E.g. to validate that a date is at least 6 hours in the future.
 
 - RANGE with `"boundsIncluded": false`?<br>
-  E.g. with `"min": 5`, to validate that a value is _is greater_ than 5<br>
+  E.g. with `"min": 5`, to validate that a value _is greater_ than 5<br>
 
 - RANGE_REF?<br>
   E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>

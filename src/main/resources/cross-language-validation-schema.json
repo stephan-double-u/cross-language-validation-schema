@@ -5,16 +5,16 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.9"]},
-    "mandatoryRules": { "$ref": "#/definitions/typeRules" },
-    "immutableRules": { "$ref": "#/definitions/typeRules" },
-    "contentRules":   { "$ref": "#/definitions/typeRulesContent" },
-    "updateRules":    { "$ref": "#/definitions/typeRulesUpdate" }
+    "schemaVersion": { "type": "string" , "enum": ["0.10"]},
+    "mandatoryRules": { "$ref": "#/$defs/typeRulesMandatory" },
+    "immutableRules": { "$ref": "#/$defs/typeRulesImmutable" },
+    "contentRules":   { "$ref": "#/$defs/typeRulesContent" },
+    "updateRules":    { "$ref": "#/$defs/typeRulesUpdate" }
   },
-  "required": ["schemaVersion", "mandatoryRules", "immutableRules", "contentRules", "updateRules"],
+  "required": ["schemaVersion"],
   "additionalProperties": false,
 
-  "definitions": {
+  "$defs": {
     "typeNamePattern": {
       "pattern": "^[\\p{L}_$][\\p{L}\\p{N}_$]*$"
     },
@@ -26,56 +26,91 @@
       "$comment": "Property name with terminal aggregate function",
       "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?)+(#sum|#distinct)?$"
     },
-    "typeRules": {
+    "typeRulesMandatory": {
       "type": "object",
       "$comment": "jsonschemavalidator.net supports unicode character classes! Is this pattern restrictive enough?",
-      "propertyNames": { "$ref": "#/definitions/typeNamePattern" },
-      "additionalProperties": { "$ref": "#/definitions/propertyRules" }
+      "propertyNames": { "$ref": "#/$defs/typeNamePattern" },
+      "additionalProperties": { "$ref": "#/$defs/propertyRulesMandatory" }
+    },
+    "typeRulesImmutable": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/typeNamePattern" },
+      "additionalProperties": { "$ref": "#/$defs/propertyRulesImmutable" }
     },
     "typeRulesContent": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/typeNamePattern" },
-      "additionalProperties": { "$ref": "#/definitions/propertyRulesContent" }
+      "propertyNames": { "$ref": "#/$defs/typeNamePattern" },
+      "additionalProperties": { "$ref": "#/$defs/propertyRulesContent" }
     },
     "typeRulesUpdate": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/typeNamePattern" },
-      "additionalProperties": { "$ref": "#/definitions/propertyRulesUpdate" }
+      "propertyNames": { "$ref": "#/$defs/typeNamePattern" },
+      "additionalProperties": { "$ref": "#/$defs/propertyRulesUpdate" }
     },
-    "propertyRules": {
+    "propertyRulesMandatory": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/propertyNameWithoutAggregateFunctionPattern" },
+      "propertyNames": { "$ref": "#/$defs/propertyNameWithoutAggregateFunctionPattern" },
       "additionalProperties": {
         "type": "array",
-        "items": { "$ref": "#/definitions/conditions" }
+        "items": { "$ref": "#/$defs/conditionsMandatory" }
+      }
+    },
+    "propertyRulesImmutable": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/propertyNameWithoutAggregateFunctionPattern" },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/conditionsImmutable" }
       }
     },
     "propertyRulesContent": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern" },
+      "propertyNames": { "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern" },
       "additionalProperties": {
         "type": "array",
-        "items": { "$ref": "#/definitions/conditionsContent" },
+        "items": { "$ref": "#/$defs/conditionsContent" },
         "minItems": 1
       }
     },
     "propertyRulesUpdate": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern" },
+      "propertyNames": { "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern" },
       "additionalProperties": {
         "type": "array",
-        "items": { "$ref": "#/definitions/conditionsUpdate" },
+        "items": { "$ref": "#/$defs/conditionsUpdate" },
         "minItems": 1
       }
     },
-    "conditions": {
+    "conditionsMandatory": {
       "type": "object",
       "properties": {
-        "permissions":        { "$ref": "#/definitions/permissions" },
-        "conditionsTopGroup": { "$ref": "#/definitions/conditionsTopGroup" },
-        "conditionsGroup":    { "$ref": "#/definitions/conditionsGroup" },
-        "condition":          { "$ref": "#/definitions/condition" },
-        "errorCodeControl":   { "$ref": "#/definitions/errorCodeControl" }
+        "permissions":        { "$ref": "#/$defs/permissions" },
+        "conditionsTopGroup": { "$ref": "#/$defs/conditionsTopGroup" },
+        "conditionsGroup":    { "$ref": "#/$defs/conditionsGroup" },
+        "condition":          { "$ref": "#/$defs/condition" },
+        "errorCodeControl":   { "$ref": "#/$defs/errorCodeControl" }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": [ "permissions" ] },
+        {
+          "oneOf": [
+            {"required": [ "conditionsTopGroup" ] },
+            {"required": [ "conditionsGroup" ] },
+            {"required": [ "condition" ] }
+          ]
+        },
+        { "required": [ "errorCodeControl" ] }
+      ]
+    },
+    "conditionsImmutable": {
+      "type": "object",
+      "properties": {
+        "permissions":        { "$ref": "#/$defs/permissions" },
+        "conditionsTopGroup": { "$ref": "#/$defs/conditionsTopGroupUpdate" },
+        "conditionsGroup":    { "$ref": "#/$defs/conditionsGroupUpdate" },
+        "condition":          { "$ref": "#/$defs/conditionUpdate" },
+        "errorCodeControl":   { "$ref": "#/$defs/errorCodeControl" }
       },
       "additionalProperties": false,
       "anyOf": [
@@ -93,12 +128,12 @@
     "conditionsContent": {
       "type": "object",
       "properties": {
-        "constraint":         { "$ref": "#/definitions/constraint" },
-        "permissions":        { "$ref": "#/definitions/permissions" },
-        "conditionsTopGroup": { "$ref": "#/definitions/conditionsTopGroup" },
-        "conditionsGroup":    { "$ref": "#/definitions/conditionsGroup" },
-        "condition":          { "$ref": "#/definitions/condition" },
-        "errorCodeControl":   { "$ref": "#/definitions/errorCodeControl" }
+        "constraint":         { "$ref": "#/$defs/constraint" },
+        "permissions":        { "$ref": "#/$defs/permissions" },
+        "conditionsTopGroup": { "$ref": "#/$defs/conditionsTopGroup" },
+        "conditionsGroup":    { "$ref": "#/$defs/conditionsGroup" },
+        "condition":          { "$ref": "#/$defs/condition" },
+        "errorCodeControl":   { "$ref": "#/$defs/errorCodeControl" }
       },
       "additionalProperties": false,
       "anyOf": [
@@ -117,18 +152,25 @@
     "conditionsUpdate": {
       "type": "object",
       "properties": {
-        "constraint":         { "$ref": "#/definitions/constraint" },
-        "permissions":        { "$ref": "#/definitions/permissions" },
-        "conditionsTopGroup": { "$ref": "#/definitions/conditionsTopGroup" },
-        "conditionsGroup":    { "$ref": "#/definitions/conditionsGroup" },
-        "condition":          { "$ref": "#/definitions/condition" },
-        "errorCodeControl":   { "$ref": "#/definitions/errorCodeControl" }
+        "constraint":         { "$ref": "#/$defs/constraintUpdate" },
+        "permissions":        { "$ref": "#/$defs/permissions" },
+        "conditionsTopGroup": { "$ref": "#/$defs/conditionsTopGroupUpdate" },
+        "conditionsGroup":    { "$ref": "#/$defs/conditionsGroupUpdate" },
+        "condition":          { "$ref": "#/$defs/conditionUpdate" },
+        "errorCodeControl":   { "$ref": "#/$defs/errorCodeControl" }
       },
       "additionalProperties": false,
-      "oneOf": [
-        { "required": [ "constraint", "conditionsTopGroup" ] },
-        { "required": [ "constraint", "conditionsGroup" ] },
-        { "required": [ "constraint", "condition" ] }
+      "anyOf": [
+        { "required": [ "constraint" ] },
+        { "required": [ "constraint", "permissions" ] },
+        {
+          "oneOf": [
+            {"required": [ "constraint", "conditionsTopGroup" ] },
+            {"required": [ "constraint", "conditionsGroup" ] },
+            {"required": [ "constraint", "condition" ] }
+          ]
+        },
+        { "required": [ "constraint", "errorCodeControl" ] }
       ]
     },
     "permissions": {
@@ -149,7 +191,7 @@
         "operator": { "type": "string" , "enum": ["AND", "OR"] },
         "conditionsGroups" : {
           "type": "array",
-          "items": { "$ref": "#/definitions/conditionsGroup" }
+          "items": { "$ref": "#/$defs/conditionsGroup" }
         }
       },
       "required": ["operator", "conditionsGroups"],
@@ -161,7 +203,7 @@
         "operator": { "type": "string" , "enum": ["AND", "OR"] },
         "conditions" : {
           "type": "array",
-          "items": { "$ref": "#/definitions/condition" }
+          "items": { "$ref": "#/$defs/condition" }
         }
       },
       "required": ["operator", "conditions"],
@@ -170,8 +212,41 @@
     "condition": {
       "type": "object",
       "properties": {
-        "property": { "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern" },
-        "constraint" : { "$ref": "#/definitions/constraint" }
+        "property": { "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern" },
+        "constraint" : { "$ref": "#/$defs/constraint" }
+      },
+      "required": ["property", "constraint"],
+      "additionalProperties": false
+    },
+    "conditionsTopGroupUpdate": {
+      "type": "object",
+      "properties": {
+        "operator": { "type": "string" , "enum": ["AND", "OR"] },
+        "conditionsGroups" : {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conditionsGroupUpdate" }
+        }
+      },
+      "required": ["operator", "conditionsGroups"],
+      "additionalProperties": false
+    },
+    "conditionsGroupUpdate": {
+      "type": "object",
+      "properties": {
+        "operator": { "type": "string" , "enum": ["AND", "OR"] },
+        "conditions" : {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conditionUpdate" }
+        }
+      },
+      "required": ["operator", "conditions"],
+      "additionalProperties": false
+    },
+    "conditionUpdate": {
+      "type": "object",
+      "properties": {
+        "property": { "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern" },
+        "constraint" : { "$ref": "#/$defs/constraintUpdate" }
       },
       "required": ["property", "constraint"],
       "additionalProperties": false
@@ -179,25 +254,50 @@
     "constraint": {
       "type": "object",
       "oneOf": [
-        { "$ref": "#/definitions/equalsStringConstraint" },
-        { "$ref": "#/definitions/equalsDateConstraint" },
-        { "$ref": "#/definitions/equalsDateTimeConstraint" },
-        { "$ref": "#/definitions/equalsNumberConstraint" },
-        { "$ref": "#/definitions/equalsBooleanConstraint" },
-        { "$ref": "#/definitions/equalsNullConstraint" },
-        { "$ref": "#/definitions/equalsRefConstraint" },
-        { "$ref": "#/definitions/sizeConstraint" },
-        { "$ref": "#/definitions/rangeNumberConstraint" },
-        { "$ref": "#/definitions/rangeDateConstraint" },
-        { "$ref": "#/definitions/rangeDateTimeConstraint" },
-        { "$ref": "#/definitions/regexConstraint" },
-        { "$ref": "#/definitions/datesConstraint" },
-        { "$ref": "#/definitions/periodConstraint" },
-        { "$ref": "#/definitions/weekdayConstraint" },
-        { "$ref": "#/definitions/quarterConstraint" },
-        { "$ref": "#/definitions/quarterRefConstraint" },
-        { "$ref": "#/definitions/yearConstraint" },
-        { "$ref": "#/definitions/yearRefConstraint" }
+        { "$ref": "#/$defs/equalsStringConstraint" },
+        { "$ref": "#/$defs/equalsDateConstraint" },
+        { "$ref": "#/$defs/equalsDateTimeConstraint" },
+        { "$ref": "#/$defs/equalsNumberConstraint" },
+        { "$ref": "#/$defs/equalsBooleanConstraint" },
+        { "$ref": "#/$defs/equalsNullConstraint" },
+        { "$ref": "#/$defs/equalsRefConstraint" },
+        { "$ref": "#/$defs/sizeConstraint" },
+        { "$ref": "#/$defs/rangeNumberConstraint" },
+        { "$ref": "#/$defs/rangeDateConstraint" },
+        { "$ref": "#/$defs/rangeDateTimeConstraint" },
+        { "$ref": "#/$defs/regexConstraint" },
+        { "$ref": "#/$defs/datesConstraint" },
+        { "$ref": "#/$defs/periodConstraint" },
+        { "$ref": "#/$defs/weekdayConstraint" },
+        { "$ref": "#/$defs/quarterConstraint" },
+        { "$ref": "#/$defs/quarterRefConstraint" },
+        { "$ref": "#/$defs/yearConstraint" },
+        { "$ref": "#/$defs/yearRefConstraint" }
+      ]
+    },
+    "constraintUpdate": {
+      "type": "object",
+      "oneOf": [
+        { "$ref": "#/$defs/equalsStringConstraint" },
+        { "$ref": "#/$defs/equalsDateConstraint" },
+        { "$ref": "#/$defs/equalsDateTimeConstraint" },
+        { "$ref": "#/$defs/equalsNumberConstraint" },
+        { "$ref": "#/$defs/equalsBooleanConstraint" },
+        { "$ref": "#/$defs/equalsNullConstraint" },
+        { "$ref": "#/$defs/equalsRefConstraintUpdate" },
+        { "$ref": "#/$defs/sizeConstraint" },
+        { "$ref": "#/$defs/rangeNumberConstraint" },
+        { "$ref": "#/$defs/rangeDateConstraint" },
+        { "$ref": "#/$defs/rangeDateTimeConstraint" },
+        { "$ref": "#/$defs/regexConstraint" },
+        { "$ref": "#/$defs/datesConstraint" },
+        { "$ref": "#/$defs/periodConstraint" },
+        { "$ref": "#/$defs/weekdayConstraint" },
+        { "$ref": "#/$defs/quarterConstraint" },
+        { "$ref": "#/$defs/quarterRefConstraintUpdate" },
+        { "$ref": "#/$defs/yearConstraint" },
+        { "$ref": "#/$defs/yearRefConstraintUpdate" },
+        { "$ref": "#/$defs/valueConstraint" }
       ]
     },
     "errorCodeControl": {
@@ -208,6 +308,9 @@
       },
       "required": ["useType", "code"],
       "additionalProperties": false
+    },
+    "refTarget": {
+      "type": "string" , "enum": ["CURRENT_ENTITY", "UPDATE_ENTITY"]
     },
     "equalsStringConstraint": {
       "type": "object",
@@ -309,11 +412,29 @@
           "type": "array",
           "items": {
             "type" : "string",
-            "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
           },
           "minItems": 1
         },
         "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "equalsRefConstraintUpdate": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["EQUALS_ANY_REF", "EQUALS_NONE_REF"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type" : "string",
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" },
+        "refTarget": { "$ref": "#/$defs/refTarget" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -455,11 +576,29 @@
           "type": "array",
           "items": {
             "type": "string",
-            "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
           },
           "minItems": 1
         },
         "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "quarterRefConstraintUpdate": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["QUARTER_ANY_REF"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" },
+        "refTarget": { "$ref": "#/$defs/refTarget" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -488,13 +627,39 @@
           "type": "array",
           "items": {
             "type": "string",
-            "$ref": "#/definitions/propertyNameWithAggregateFunctionPattern"
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
           },
           "minItems": 1
         },
         "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "yearRefConstraintUpdate": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["YEAR_ANY_REF"] },
+        "values" : {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "$ref": "#/$defs/propertyNameWithAggregateFunctionPattern"
+          },
+          "minItems": 1
+        },
+        "nullEqualsTo": { "type": "boolean" },
+        "refTarget": { "$ref": "#/$defs/refTarget" }
+      },
+      "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "valueConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["VALUE_CHANGED", "VALUE_UNCHANGED"] }
+      },
+      "required": ["type"],
       "additionalProperties": false
     }
   }

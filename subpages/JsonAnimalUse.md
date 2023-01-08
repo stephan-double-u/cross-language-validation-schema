@@ -1,7 +1,6 @@
 ```json
 {
-  "schemaVersion": "0.8",
-  "mandatoryRules": {},
+  "schemaVersion": "0.10",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -48,8 +47,6 @@
         }
       ]
     }
-  },
-  "contentRules": {},
-  "updateRules": {}
+  }
 }
 ```

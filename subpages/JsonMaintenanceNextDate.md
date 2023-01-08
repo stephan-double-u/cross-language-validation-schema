@@ -1,8 +1,6 @@
 ```json
 {
-  "schemaVersion": "0.8",
-  "mandatoryRules": {},
-  "immutableRules": {},
+  "schemaVersion": "0.10",
   "contentRules": {
     "article": {
       "maintenanceNextDate": [
@@ -59,7 +57,6 @@
         }
       ]
     }
-  },
-  "updateRules": {}
+  }
 }
 ```
