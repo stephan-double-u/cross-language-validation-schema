@@ -92,6 +92,7 @@
       },
       "additionalProperties": false,
       "anyOf": [
+        { },
         { "required": [ "permissions" ] },
         {
           "oneOf": [
@@ -114,6 +115,7 @@
       },
       "additionalProperties": false,
       "anyOf": [
+        { },
         { "required": [ "permissions" ] },
         {
           "oneOf": [

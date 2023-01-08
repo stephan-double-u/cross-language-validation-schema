@@ -2,6 +2,8 @@
   "schemaVersion": "0.10",
   "mandatoryRules": {
     "reservation": {
+      "foo": [],
+      "foo2": [{}],
       "customer.foo": [
         {
           "condition": {
@@ -407,6 +409,7 @@
   "immutableRules": {
     "reservation": {
       "id": [],
+      "id2": [{}],
       "status": [
         {
           "condition": {
