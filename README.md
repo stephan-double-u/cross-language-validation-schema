@@ -1,4 +1,4 @@
-# Cross Language Validation (CLV) Schema - V0.10
+# Cross Language Validation (CLV) Schema - V0.11
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
@@ -482,14 +482,14 @@ Thus, the most minimal valid JSON document (i.e. a file that does not contain an
 this:
 ```json
 {
-  "schemaVersion": "0.10"
+  "schemaVersion": "0.11"
 }
 ```
 A valid JSON document without any validation rule can also be specified by adding the above-mentioned keys with empty 
 object values:
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
@@ -564,7 +564,7 @@ The Value is an _array_ that may contain different types of [condition objects](
 > JSON for example validation rule: "The city of the customer address for a reservation is mandatory":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "mandatoryRules": {
     "reservation": {
       "customer.address.city": []
@@ -588,7 +588,7 @@ This type of condition _is required for **content** and **update** rules_ and _n
 > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "contentRules": {
     "article": {
       "name": [
@@ -630,7 +630,7 @@ does not have any permission from the _values_ array.
 > update the object) owns any of the role resp. permission APPRENTICE or READ_ONLY":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "immutableRules": {
     "article": {
       "name": [
@@ -676,7 +676,7 @@ The key of the other pair is _constraint_, its value is an [elementary constrain
 > by setting the property _everLeftWarehouse_ to _true_. This flag must never be reset":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "immutableRules": {
     "article": {
       "everLeftWarehouse": [
@@ -707,7 +707,7 @@ array of [elementary constraint objects](#Elementary-constraints).
 > used once for animals":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -752,7 +752,7 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
 > assigned to a medical set, or (b) it has been used once for animals":
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -816,7 +816,7 @@ the key _errorCodeControl_ whose value is an object with two key/value pairs:
 Example JSON for _useType_ _AS_SUFFIX_:
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -834,7 +834,7 @@ Example JSON for _useType_ _AS_SUFFIX_:
 Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -1032,7 +1032,8 @@ Example:
   "type": "REGEX_ANY",
   "values": [
     "^[0-9]{5}$"
-  ]
+  ],
+  "nullEqualsTo": true
 }
 ```
 This constraint can be applied to properties of type:
@@ -1042,6 +1043,9 @@ This constraint can be applied to properties of type:
 Requirements:
 - The array must contain at least one value.
 - _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 **NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features
 usually results from the lowest common denominator of the languages involved.
@@ -1060,7 +1064,8 @@ Example:
   "type": "REGEX_NONE",
   "values": [
     "forbidden"
-  ]
+  ],
+  "nullEqualsTo": true
 }
 ```
 This constraint can be applied to properties of type:
@@ -1070,6 +1075,9 @@ This constraint can be applied to properties of type:
 Requirements:
 - The array must contain at least one value.
 - _Null_ values are not allowed.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _true_.
 
 **NOTE**: The schema does not limit the regex features that could be used. The permissible range of regex features 
 usually results from the lowest common denominator of the languages involved. 
@@ -1087,7 +1095,8 @@ Example:
 {
   "type": "SIZE",
   "min": 0,
-  "max": 10
+  "max": 10,
+  "nullEqualsTo": true
 }
 ```
 This constraint can be applied to properties of type:
@@ -1099,6 +1108,9 @@ Requirements:
 - At least one of the keys _min_ or _max_ must be specified. The other key is optional.
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.
 - The values of the keys _min_ and _max_ must be **> 0** (zero).
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### RANGE
 The RANGE constraint checks whether the value of the associated property is within the range defined by the values of 
@@ -1108,7 +1120,8 @@ Example:
 {
   "type": "RANGE",
   "min": 0,
-  "max": 10
+  "max": 10,
+  "nullEqualsTo": true
 }
 ```
 This constraint can be applied to properties of type:
@@ -1121,6 +1134,9 @@ Requirements:
 - the values of the keys _min_ and _max_ must equal the type of the associated property.
 - At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### FUTURE\_DAYS
 The FUTURE_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at 
@@ -1131,7 +1147,8 @@ Example:
 {
   "type": "FUTURE_DAYS",
   "min": 0,
-  "max": 90
+  "max": 90,
+  "nullEqualsTo": true
 }
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```) 
@@ -1143,6 +1160,9 @@ Requirements:
 - The key _max_ is optional.<br>
 - The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### PAST\_DAYS
 The PAST_DAYS constraint checks whether the value of the associated property is a date that is at least _min_ and at 
@@ -1153,7 +1173,8 @@ Example:
 {
   "type": "PAST_DAYS",
   "min": 0,
-  "max": 365
+  "max": 365,
+  "nullEqualsTo": true
 }
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1165,6 +1186,9 @@ Requirements:
 - The key _max_ is optional.<br>
 - The values of the keys _min_ and _max_ must be **>= 0** (zero).<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### PERIOD\_DAYS
 The PERIOD_DAYS constraint checks whether the value of the associated property lies within the period defined by the 
@@ -1177,7 +1201,8 @@ Example:
 {
   "type": "PERIOD_DAYS",
   "min": -365,
-  "max": 365
+  "max": 365,
+  "nullEqualsTo": true
 } 
 ```
 This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
@@ -1187,6 +1212,9 @@ resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
 Requirements:
 - At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
 - If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
 
 ### WEEKDAY\_ANY
 The WEEKDAY_ANY constraint checks whether the value of the associated property is a date whose day matches one of 
@@ -1499,9 +1527,8 @@ further evaluation of this rule can be skipped.
 >     Therefore, further evaluation for rule 1 is skipped.
 > 1. The permissions constraint of rule 2 _does match_ because the user does not have the permission MANAGER.
 >
->    The condition "_maintenanceNextDate_ must not be null" of rule 2 is not fulfilled.
->
->    Therefore, further evaluation for rule 2 is skipped.
+>    The content constraint of rule 2 is evaluated to _true_ because it contains the key/value pair
+>     `"nullEqualsTo": true`
 > 1. Rule 3 does not have a permissions constraint or a conditions constraint.
 >
 >    The content constraint of rule 3 is evaluated to _true_ because it contains the key/value pair 
@@ -1521,8 +1548,6 @@ further evaluation of this rule can be skipped.
 >    ```
 > will lead to these steps, assuming the evaluation date is "2023-01-02"  
 > 1. The permissions constraint of rule 1 does match because the user has the permission MANAGER. 
->
->    The condition "_maintenanceNextDate_ must not be null" of rule 1 is fulfilled.
 >
 >    The content constraint is evaluated to _true_ for rule 1 because the date is 3 days in the future.
 > 1. The permissions constraint of rule 2 does not match because the user has the permission MANAGER.

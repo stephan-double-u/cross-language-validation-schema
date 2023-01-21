@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "mandatoryRules": {
     "reservation": {
       "foo": [],
@@ -13,7 +13,8 @@
               "values": [
                 "2018-11-13",
                 "2018-11-14"
-              ]
+              ],
+              "nullEqualsTo": false
             }
           }
         },
@@ -77,7 +78,8 @@
                 "constraint": {
                   "type": "SIZE",
                   "min": 1,
-                  "max": 3
+                  "max": 3,
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -101,7 +103,8 @@
                   "values": [
                     1,
                     3
-                  ]
+                  ],
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -111,7 +114,8 @@
                   "values": [
                     "someNumber",
                     "otherNumber"
-                  ]
+                  ],
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -121,7 +125,8 @@
                   "values": [
                     1999,
                     2022
-                  ]
+                  ],
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -131,7 +136,8 @@
                   "values": [
                     "someNumber",
                     "otherNumber"
-                  ]
+                  ],
+                  "nullEqualsTo": false
                 }
               }
             ]
@@ -176,7 +182,8 @@
                       "type": "EQUALS_ANY",
                       "values": [
                         1
-                      ]
+                      ],
+                      "nullEqualsTo": false
                     }
                   }
                 ]
@@ -207,7 +214,8 @@
                   "values": [
                     "nomatch",
                     "N[A-Z]+"
-                  ]
+                  ],
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -216,14 +224,16 @@
                   "type": "REGEX_NONE",
                   "values": [
                     "E"
-                  ]
+                  ],
+                  "nullEqualsTo": true
                 }
               },
               {
                 "property": "startDate",
                 "constraint": {
                   "type": "FUTURE_DAYS",
-                  "min": 0
+                  "min": 0,
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -231,7 +241,8 @@
                 "constraint": {
                   "type": "PAST_DAYS",
                   "min": 2,
-                  "max": 2
+                  "max": 2,
+                  "nullEqualsTo": false
                 }
               },
               {
@@ -246,7 +257,8 @@
                 "constraint": {
                   "type": "PERIOD_DAYS",
                   "min": -100,
-                  "min": 100
+                  "min": 100,
+                  "nullEqualsTo": false
                 }
               }
             ]
@@ -273,7 +285,8 @@
                     "property": "someLong",
                     "constraint": {
                       "type": "RANGE",
-                      "max": 9007199254740991
+                      "max": 9007199254740991,
+                      "nullEqualsTo": false
                     }
                   },
                   {
@@ -281,7 +294,8 @@
                     "constraint": {
                       "type": "RANGE",
                       "min": "2022-01-01",
-                      "max": "2022-01-01"
+                      "max": "2022-01-01",
+                      "nullEqualsTo": false
                     }
                   },
                   {

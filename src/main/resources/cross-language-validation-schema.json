@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.10"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.11"]},
     "mandatoryRules": { "$ref": "#/$defs/typeRulesMandatory" },
     "immutableRules": { "$ref": "#/$defs/typeRulesImmutable" },
     "contentRules":   { "$ref": "#/$defs/typeRulesContent" },
@@ -446,7 +446,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["SIZE"] },
         "min" : { "type": "number", "minimum": 0 },
-        "max" : { "type": "number", "minimum": 0 }
+        "max" : { "type": "number", "minimum": 0 },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [
@@ -460,7 +461,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["RANGE"] },
         "min" : { "type": "number" },
-        "max" : { "type": "number" }
+        "max" : { "type": "number" },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [
@@ -474,7 +476,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["RANGE"] },
         "min" : { "type": "string", "format": "date" },
-        "max" : { "type": "string", "format": "date" }
+        "max" : { "type": "string", "format": "date" },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [
@@ -488,7 +491,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["RANGE"] },
         "min" : { "type": "string", "format": "date-time" },
-        "max" : { "type": "string", "format": "date-time" }
+        "max" : { "type": "string", "format": "date-time" },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [
@@ -504,7 +508,8 @@
         "values" : {
           "type": "array",
           "items": { "type" : "string", "format": "regex" }
-        }
+        },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type", "values"],
       "additionalProperties": false
@@ -514,7 +519,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["FUTURE_DAYS", "PAST_DAYS"] },
         "min" : { "type": "number" },
-        "max" : { "type": "number" }
+        "max" : { "type": "number" },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [
@@ -528,7 +534,8 @@
       "properties": {
         "type": { "type": "string" , "enum": ["PERIOD_DAYS"] },
         "min" : { "type": "number" },
-        "max" : { "type": "number" }
+        "max" : { "type": "number" },
+        "nullEqualsTo": { "type": "boolean" }
       },
       "required": ["type"],
       "anyOf": [

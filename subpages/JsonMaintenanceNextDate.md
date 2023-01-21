@@ -1,6 +1,6 @@
 ```json
 {
-  "schemaVersion": "0.10",
+  "schemaVersion": "0.11",
   "contentRules": {
     "article": {
       "maintenanceNextDate": [
@@ -8,38 +8,28 @@
           "constraint": {
             "type": "FUTURE_DAYS",
             "min": 1,
-            "max": 365
+            "max": 365,
+            "nullEqualsTo": true
           },
           "permissions": {
             "type": "ANY",
             "values": [
               "MANAGER"
             ]
-          },
-          "condition": {
-            "property": "maintenanceNextDate",
-            "constraint": {
-              "type": "EQUALS_NOT_NULL"
-            }
           }
         },
         {
           "constraint": {
             "type": "FUTURE_DAYS",
             "min": 10,
-            "max": 365
+            "max": 365,
+            "nullEqualsTo": true
           },
           "permissions": {
             "type": "NONE",
             "values": [
               "MANAGER"
             ]
-          },
-          "condition": {
-            "property": "maintenanceNextDate",
-            "constraint": {
-              "type": "EQUALS_NOT_NULL"
-            }
           }
         },
         {
