@@ -2,7 +2,7 @@
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/bEp83sJg
+https://www.jsonschemavalidator.net/s/d6aaINJ4
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
