@@ -1,6 +1,6 @@
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "immutableRules": {
     "article": {
       "animalUse": [

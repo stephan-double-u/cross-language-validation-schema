@@ -1,8 +1,8 @@
-# Cross Language Validation (CLV) Schema - V0.11
+# Cross Language Validation (CLV) Schema - V0.12
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/d6aaINJ4
+https://www.jsonschemavalidator.net/s/RfXwNmXD
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
@@ -91,9 +91,9 @@ With the &#10169; [CLV Java implementation](https://github.com/stephan-double-u/
 for this schema this validation rule can be defined like this: 
 ```java
 public class AnyClass {
-    static final ValidationRules<Article> article_rules = new ValidationRules<>(Article.class);
+    static final ValidationRules<Article> articleRules = new ValidationRules<>(Article.class);
     static {
-      article_rules.immutable("animalUse",
+      articleRules.immutable("animalUse",
             ConditionsTopGroup.OR(
                     ConditionsGroup.AND(
                             Condition.of("medicalSetId", Equals.notNull())),
@@ -108,7 +108,7 @@ An application that uses this Java implementation can expose the JSON e.g. via a
 ```java
 @GetMapping(value = "/validation-rules", produces = "application/json;charset=UTF-8")
 public String getValidationRules(){
-    return ValidationRules.serializeToJson(article_rules);
+    return ValidationRules.serializeToJson(articleRules);
 }
 ```
 The JSON for the example rule would look similar to this: [JsonAnimalUse.md](subpages/JsonAnimalUse.md)
@@ -289,7 +289,7 @@ Validation rules can depend on conditions about other object properties.
 _NEW_".
 
 Since _content rules_ (like _mandatory rules_) should also be validated when the entity is _created_, these conditions
-_evaluated against the entity that should be created resp. updated_.
+must be _evaluated against the entity that should be created resp. updated_.
 
 <table>
  <tr>
@@ -360,7 +360,7 @@ In a frontend the rule about a mandatory property can be used in 2 ways:
 Validation rules can depend on conditions about other object properties.
 > Example rule: "The property _name_ should be mandatory, but only if the property _status_ is not _NEW_".
 
-Since _mandatory rules_ should also be validated when the entity is _created_, these conditions
+Since _mandatory rules_ (like _content rules_) should also be validated when the entity is _created_, these conditions
 must be _evaluated against the entity that should be created resp. updated_.
 
 <table>
@@ -482,14 +482,14 @@ Thus, the most minimal valid JSON document (i.e. a file that does not contain an
 this:
 ```json
 {
-  "schemaVersion": "0.11"
+  "schemaVersion": "0.12"
 }
 ```
 A valid JSON document without any validation rule can also be specified by adding the above-mentioned keys with empty 
 object values:
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
@@ -564,7 +564,7 @@ The Value is an _array_ that may contain different types of [condition objects](
 > JSON for example validation rule: "The city of the customer address for a reservation is mandatory":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "mandatoryRules": {
     "reservation": {
       "customer.address.city": []
@@ -588,7 +588,7 @@ This type of condition _is required for **content** and **update** rules_ and _n
 > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "contentRules": {
     "article": {
       "name": [
@@ -630,7 +630,7 @@ does not have any permission from the _values_ array.
 > update the object) owns any of the role resp. permission APPRENTICE or READ_ONLY":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "immutableRules": {
     "article": {
       "name": [
@@ -676,7 +676,7 @@ The key of the other pair is _constraint_, its value is an [elementary constrain
 > by setting the property _everLeftWarehouse_ to _true_. This flag must never be reset":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "immutableRules": {
     "article": {
       "everLeftWarehouse": [
@@ -707,7 +707,7 @@ array of [elementary constraint objects](#Elementary-constraints).
 > used once for animals":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -752,7 +752,7 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
 > assigned to a medical set, or (b) it has been used once for animals":
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -816,7 +816,7 @@ the key _errorCodeControl_ whose value is an object with two key/value pairs:
 Example JSON for _useType_ _AS_SUFFIX_:
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -834,7 +834,7 @@ Example JSON for _useType_ _AS_SUFFIX_:
 Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -1358,6 +1358,35 @@ Requirements:
   - If this constraint is used as the _property constraint_ (which is only possible in an _update rule_),
     the `refTarget` defaults to UPDATE_ENTITY.
 
+### YEAR\_RANGE
+The YEAR_RANGE constraint checks whether the value of the associated property is a date whose year lies within the 
+absolute resp. relative range defined by the _min_ and _max_ values.<br>
+For an absolute range, the year of the date must be greater than or equal to the _min_ value and smaller than or equal
+to the _max_ value.<br>
+For a relative range, the _min_ and _max_ values refer to the year of the validation date, i.e. the year of the date 
+must be in the absolute range _current year + min value_ and _current year + max value.<br>
+Example:
+```json
+{
+  "type": "YEAR_RANGE",
+  "min": -1,
+  "max": 2,
+  "rangeType": "RELATIVE",
+  "nullEqualsTo": true
+} 
+```
+This constraint can only be applied to properties of type _string_ that complies to the _date_ (e.g. ```"2022-12-31"```)
+resp. _date-time_ (e.g. ```"2022-12-31T23:59:59Z"```) format
+(according to &#10169; [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)).
+
+Requirements:
+- At least one of the keys _min_ or _max_ must be specified. The other key is optional.<br>
+- If both keys are specified, the _min-value_ must not be greater than the _max-value_.<br>
+- The key _rangeType_ must be either "ABSOLUTE" or "RELATIVE".
+- The optional key _nullEqualsTo_ determines how this constraint should be evaluated if the value of
+  the associated property is _null_.
+- For this constraint the _nullEqualsTo_ default value is _false_.
+
 ### VALUE_CHANGED
 This constraint checks whether the value of the associated property has been changed or not.<br>
 It is only allowed for _update rules_ and _immutable rules_.
@@ -1568,9 +1597,6 @@ further evaluation of this rule can be skipped.
 - implements a Validator and a Consumer for this schema in ECMAScript 6.
 
 # Thoughts about possible extensions
-- FUTURE_HOURS?<br>
-  E.g. to validate that a date is at least 6 hours in the future.
-
 - RANGE with `"boundsIncluded": false`?<br>
   E.g. with `"min": 5`, to validate that a value _is greater_ than 5<br>
 
@@ -1578,10 +1604,13 @@ further evaluation of this rule can be skipped.
   E.g. with `"min": "intProp"`, to validate that a value is not smaller than the value of 'intProp'<br>
   or `"min": "dateProp"`, to validate that a date is not before the date of 'dateProp'
 
+- FUTURE_HOURS?<br>
+  E.g. to validate that a date is at least 6 hours in the future.
+
 - More terminal aggregate functions?<br>
   E.g. `foo[*]#min, foo[*]#max, foo[*]#avg, foo[*]#same, foo[*]increasing, ...`
 
-- Array index definition 'last N elements' (e.g. `[<2]`)?
+- Array index definition for e.g 'the second to last' (e.g. `[-2]`)?
 
 - Support for 'big integer?'<br>
   see https://golb.hplar.ch/2019/01/js-bigint-json.html

@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.11"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.12"]},
     "mandatoryRules": { "$ref": "#/$defs/typeRulesMandatory" },
     "immutableRules": { "$ref": "#/$defs/typeRulesImmutable" },
     "contentRules":   { "$ref": "#/$defs/typeRulesContent" },
@@ -273,8 +273,9 @@
         { "$ref": "#/$defs/weekdayConstraint" },
         { "$ref": "#/$defs/quarterConstraint" },
         { "$ref": "#/$defs/quarterRefConstraint" },
-        { "$ref": "#/$defs/yearConstraint" },
-        { "$ref": "#/$defs/yearRefConstraint" }
+        { "$ref": "#/$defs/yearAnyConstraint" },
+        { "$ref": "#/$defs/yearAnyRefConstraint" },
+        { "$ref": "#/$defs/yearRangeConstraint" }
       ]
     },
     "constraintUpdate": {
@@ -297,8 +298,9 @@
         { "$ref": "#/$defs/weekdayConstraint" },
         { "$ref": "#/$defs/quarterConstraint" },
         { "$ref": "#/$defs/quarterRefConstraintUpdate" },
-        { "$ref": "#/$defs/yearConstraint" },
-        { "$ref": "#/$defs/yearRefConstraintUpdate" },
+        { "$ref": "#/$defs/yearAnyConstraint" },
+        { "$ref": "#/$defs/yearAnyRefConstraintUpdate" },
+        { "$ref": "#/$defs/yearRangeConstraint" },
         { "$ref": "#/$defs/valueConstraint" }
       ]
     },
@@ -612,7 +614,7 @@
       "required": ["type", "values"],
       "additionalProperties": false
     },
-    "yearConstraint": {
+    "yearAnyConstraint": {
       "type": "object",
       "properties": {
         "type": { "type": "string" , "enum": ["YEAR_ANY"] },
@@ -628,7 +630,7 @@
       "required": ["type", "values"],
       "additionalProperties": false
     },
-    "yearRefConstraint": {
+    "yearAnyRefConstraint": {
       "type": "object",
       "properties": {
         "type": { "type": "string" , "enum": ["YEAR_ANY_REF"] },
@@ -645,7 +647,7 @@
       "required": ["type", "values"],
       "additionalProperties": false
     },
-    "yearRefConstraintUpdate": {
+    "yearAnyRefConstraintUpdate": {
       "type": "object",
       "properties": {
         "type": { "type": "string" , "enum": ["YEAR_ANY_REF"] },
@@ -661,6 +663,22 @@
         "refTarget": { "$ref": "#/$defs/refTarget" }
       },
       "required": ["type", "values"],
+      "additionalProperties": false
+    },
+    "yearRangeConstraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" , "enum": ["YEAR_RANGE"] },
+        "min" : { "type": "number" },
+        "max" : { "type": "number" },
+        "rangeType": { "type": "string" , "enum": ["ABSOLUTE", "RELATIVE"] },
+        "nullEqualsTo": { "type": "boolean" }
+      },
+      "required": ["type"],
+      "anyOf": [
+        { "required": ["min"] },
+        { "required": ["max"] }
+      ],
       "additionalProperties": false
     },
     "valueConstraint": {

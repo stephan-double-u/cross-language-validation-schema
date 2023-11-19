@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.11",
+  "schemaVersion": "0.12",
   "mandatoryRules": {
     "reservation": {
       "foo": [],
@@ -138,6 +138,26 @@
                     "otherNumber"
                   ],
                   "nullEqualsTo": false
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "YEAR_RANGE",
+                  "min": 2000,
+                  "max": 2100,
+                  "rangeType": "ABSOLUTE",
+                  "nullEqualsTo": false
+                }
+              },
+              {
+                "property": "someDate",
+                "constraint": {
+                  "type": "YEAR_RANGE",
+                  "min": -5,
+                  "max": 10,
+                  "rangeType": "RELATIVE",
+                  "nullEqualsTo": true
                 }
               }
             ]
