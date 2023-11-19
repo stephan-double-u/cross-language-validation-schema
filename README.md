@@ -57,6 +57,7 @@ should be done either by the writer or the reader.
     - [QUARTER\_ANY\_REF](#quarter_any_ref)
     - [YEAR\_ANY](#year_any)
     - [YEAR\_ANY\_REF](#year_any_ref)
+    - [YEAR\_RANGE](#year_range)
     - [VALUE_CHANGED](#value_changed)
     - [VALUE_UNCHANGED](#value_unchanged)
 - [Requirements for an implementer](#requirements-for-an-implementer)
