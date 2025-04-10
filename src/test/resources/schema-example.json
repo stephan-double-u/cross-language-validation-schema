@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "mandatoryRules": {
     "reservation": {
       "foo": [],
@@ -442,8 +442,8 @@
   },
   "immutableRules": {
     "reservation": {
-      "id": [],
-      "id2": [{}],
+      "*": [],
+      "id": [{}],
       "status": [
         {
           "condition": {

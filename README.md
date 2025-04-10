@@ -1,8 +1,8 @@
-# Cross Language Validation (CLV) Schema - V0.12
+# Cross Language Validation (CLV) Schema - V0.13
 This JSON schema specifies validation rules in a language independent manner to enable cross language validation.
 
 An online, interactive JSON Schema validator for this schema can be found here:
-https://www.jsonschemavalidator.net/s/RfXwNmXD
+https://www.jsonschemavalidator.net/s/f1TtTYaY
 
 Note: Neither JSON Schema nor JSON itself have per se means to enforce uniqueness of keys. Enforcement of uniqueness 
 should be done either by the writer or the reader.
@@ -29,6 +29,7 @@ should be done either by the writer or the reader.
       - [Names of nested properties](#names-of-nested-properties)
       - [Names with array index definitions](#names-with-array-index-definitions)
       - [Names with terminal aggregate function](#names-with-terminal-aggregate-function)
+      - [Special key for immutable entities](#special-key-for-immutable-entities)
     - [The value of the pair](#the-value-of-the-pair)
   - [Condition types and objects](#condition-types-and-objects)
     - [Content constraint](#content-constraint)
@@ -68,6 +69,8 @@ should be done either by the writer or the reader.
     - [Rule validation sequence](#rule-validation-sequence)
 - [Known implementations](#known-implementations)
 - [Thoughts about possible extensions](#thoughts-about-possible-extensions)
+
+[⬆](#table-of-contents)
 
 # TL;DR
 The purpose of this _JSON Schema_ is to describe _a wide range of validation rules_, independent of a specific 
@@ -142,6 +145,8 @@ animalUseCheckbox.disabled = isPropertyImmutable("article", "animalUse", article
 comprehensive example of how to use the framework. It's also a good starting point to see how to write different 
 types of rules.
 
+[⬆](#table-of-contents)
+
 # Motivation
 Validation of input data plays a crucial role in almost any application. Whereby the server-side validation is a must, 
 because the server should never trust the client-side. Of course client side validation is also important for a good 
@@ -172,6 +177,8 @@ It should be possible to define validation rules
 - that allow to combine these conditions with logical AND resp. OR
 - for arrays resp. list properties it should be possible to refer to individual array resp. list elements
 - that may depend on individual user permissions
+
+[⬆](#table-of-contents)
 
 # Close-to-life example
 The example validation rules in this documentation are based loosely on this _close-to-life example_ to make the 
@@ -260,6 +267,8 @@ A fictitious requirements document could mention validation rules like this:
 9. A reservation not in status PREPARATION must contain 1 to 3 medical sets. If the customer has status PLATINUM, it may
    contain up to 5 medical sets.
 
+[⬆](#table-of-contents)
+
 # Documentation 
 ## Validation Rule Types
 It has been shown that it is appropriate to distinguish four types of rules, which differ in their semantics and
@@ -275,7 +284,7 @@ whose values define the allowed values resp. value ranges.
 > Example constraint with _referenced values_:<br>
 > "The property _maintenanceNextDate_ must contain a date value which year **equals the value of the property _year_**."
 
-TODO: improve rule type documentation
+**TODO**: improve rule type documentation
 
 ### Content Rules
 Defining a _content rule_ for a property means setting a constraint on the possible values of that property.
@@ -307,6 +316,8 @@ must be _evaluated against the entity that should be created resp. updated_.
 
 > To stay with our example: if the user sets _status_ to e.g. _ACTIVE_ before pressing a _create_ button, it is
 > evaluated if a _name_ with at least 10 characters has been entered as well.
+
+[⬆](#table-of-contents)
 
 ### Update Rules
 Like _content rules_, an _update rule_ for a property also sets a constraint on the possible values of that property.
@@ -341,6 +352,8 @@ That is, _update rules_ can be used to define _state transition validations_!
 > If the user has set _status_ to, say, _DECOMMISSIONED_, it is first evaluated whether the last stored
 > _status_ is either _ACTIVE_ or _INACTIVE_ and then whether the edited value is _ACTIVE_, _INACTIVE_ or
 > _DECOMMISSIONED_.
+
+[⬆](#table-of-contents)
 
 ### Mandatory Rules
 Defining a property as _mandatory_ simply says that the value of that property _must not be null_ when the
@@ -379,6 +392,8 @@ must be _evaluated against the entity that should be created resp. updated_.
 
 > To stay with our example: only if the user has set the _status_ to something different than _NEW_ (e.g. _ACTIVE_),
 > it is evaluated if a _name_ has been entered as well.
+
+[⬆](#table-of-contents)
 
 ### Immutable Rules
 Defining a property as _immutable_ (a.k.a. _read-only_) says that the value of that property _must not be changed_.
@@ -460,6 +475,13 @@ Therefore, it must be possible to specify that the _update entity_ should be ref
 > Then whether the value of the property _status_ of the _update entity_ equals the current value (=> _false_).<br>
 > As a result the validation of that rule fails.
 
+Sometimes not only single properties of an entity should be immutable, but the entity as a whole. This means that 
+the entity should not be updated at all. E.g. if it is an entity with an archived-flag, or the user don't have the 
+permission to update this entity.\
+How this can be done is described in section 
+[Special key for immutable entities](#special-key-for-immutable-entities).
+
+[⬆](#table-of-contents)
 
 ## JSON structure
 A valid JSON document consists of _up to 5 key/value_ pairs, whereas only the first one is mandatory:
@@ -483,20 +505,22 @@ Thus, the most minimal valid JSON document (i.e. a file that does not contain an
 this:
 ```json
 {
-  "schemaVersion": "0.12"
+  "schemaVersion": "0.13"
 }
 ```
 A valid JSON document without any validation rule can also be specified by adding the above-mentioned keys with empty 
 object values:
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "mandatoryRules": {},
   "immutableRules": {},
   "contentRules": {},
   "updateRules": {}
 }
 ```
+
+[⬆](#table-of-contents)
 
 ## Entity Type related validation rules
 Validation rules regarding the properties of an entity type are defined by a key/value pair where the key is the name 
@@ -554,7 +578,12 @@ For property names that contain array index definitions, the names can be append
   - This terminal aggregate function `#distinct` compares all specified array elements and returns _true_ if all are 
 different, otherwise _false_, e.g.
     > `"articles[*].accessories[*].name#distinct"`
- 
+
+#### Special key for immutable entities
+As mentioned above, it might be useful to define an immutable rule not only for single properties but for an _entity as 
+a hole_. Therefore, for immutable rules it is possible to use the _special key "*" (star)_ instead of a real property name.\
+A validator implementation should immediately create an error code when evaluating such a rule.
+
 ### The value of the pair
 The Value is an _array_ that may contain different types of [condition objects](#condition-types-and-objects).
 - For validation rules regarding **mandatory** and **immutable** properties the array **may be empty**. That means that 
@@ -565,7 +594,7 @@ The Value is an _array_ that may contain different types of [condition objects](
 > JSON for example validation rule: "The city of the customer address for a reservation is mandatory":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "mandatoryRules": {
     "reservation": {
       "customer.address.city": []
@@ -573,6 +602,8 @@ The Value is an _array_ that may contain different types of [condition objects](
   }
 }
 ```
+
+[⬆](#table-of-contents)
 
 ## Condition types and objects
 Condition objects specify _further conditions_ under which the validation rules are evaluated. They are 
@@ -589,7 +620,7 @@ This type of condition _is required for **content** and **update** rules_ and _n
 > JSON for example validation rule: "The article name length must be between 5 and 100 characters":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "contentRules": {
     "article": {
       "name": [
@@ -631,7 +662,7 @@ does not have any permission from the _values_ array.
 > update the object) owns any of the role resp. permission APPRENTICE or READ_ONLY":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "immutableRules": {
     "article": {
       "name": [
@@ -677,7 +708,7 @@ The key of the other pair is _constraint_, its value is an [elementary constrain
 > by setting the property _everLeftWarehouse_ to _true_. This flag must never be reset":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "immutableRules": {
     "article": {
       "everLeftWarehouse": [
@@ -708,7 +739,7 @@ array of [elementary constraint objects](#Elementary-constraints).
 > used once for animals":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -753,7 +784,7 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
 > assigned to a medical set, or (b) it has been used once for animals":
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "immutableRules": {
     "article": {
       "animalUse": [
@@ -804,6 +835,8 @@ The key of the other pair is _conditionsGroups_, its value is an array of _Condi
 }
 ```
 
+[⬆](#table-of-contents)
+
 ### Error code control
 If a validation rule is violated, an error code is created as defined in chapter 
 [Validation error codes](#validation-error-codes).<br>
@@ -817,7 +850,7 @@ the key _errorCodeControl_ whose value is an object with two key/value pairs:
 Example JSON for _useType_ _AS_SUFFIX_:
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -835,7 +868,7 @@ Example JSON for _useType_ _AS_SUFFIX_:
 Example JSON for _useType_ _AS_REPLACEMENT_:
 ```json
 {
-  "schemaVersion": "0.12",
+  "schemaVersion": "0.13",
   "mandatoryRules": {
     "article": {
       "name": [
@@ -850,6 +883,8 @@ Example JSON for _useType_ _AS_REPLACEMENT_:
   }
 }
 ```
+
+[⬆](#table-of-contents)
 
 ## Elementary constraints
 An elementary constraint is used as a _property constraint_ or within a conditions contraint , i.e. it 
@@ -1418,6 +1453,8 @@ This constraint can be applied to properties of type:
 - _array_
 - _object_
 
+[⬆](#table-of-contents)
+
 # Requirements for an implementer
 An implementation for this schema must meet the following requirements. These requirements depend on which part is 
 implemented.
@@ -1458,7 +1495,6 @@ export function setValidationRules(rules) {}
 ```
 
 ## Validator
-
 A validator must provide API to validate _mandatory_ and _content rules_ of an entity type against the entity 
 instance that should be created resp. updated, taking into account the current user permissions.
 
@@ -1590,6 +1626,8 @@ further evaluation of this rule can be skipped.
 > As a result the validation of rule 3 has failed. The validation method returns the error code 
 > `error.validation.content.weekday_any.article.maintenanceNextDate` - assuming that the default error code has not 
 > been changed.
+
+[⬆](#table-of-contents)
 
 # Known implementations
 - &#10169; [Cross Language Validation Java](https://github.com/stephan-double-u/cross-language-validation-java) 

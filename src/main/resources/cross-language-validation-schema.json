@@ -5,7 +5,7 @@
 
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "string" , "enum": ["0.12"]},
+    "schemaVersion": { "type": "string" , "enum": ["0.13"]},
     "mandatoryRules": { "$ref": "#/$defs/typeRulesMandatory" },
     "immutableRules": { "$ref": "#/$defs/typeRulesImmutable" },
     "contentRules":   { "$ref": "#/$defs/typeRulesContent" },
@@ -21,6 +21,10 @@
     "propertyNameWithoutAggregateFunctionPattern": {
       "$comment": "Property name according to spec. E.g. 'foo[0-3].bar.zoo[1/2].zoo'. Validity of index numbers must be validated by implementation. Is a 'pattern description' enough?",
       "pattern": "^([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?)+$"
+    },
+    "propertyNameOrPlaceholderWithoutAggregateFunctionPattern": {
+      "$comment": "Property name according to spec. E.g. 'foo[0-3].bar.zoo[1/2].zoo'. Validity of index numbers must be validated by implementation. Is a 'pattern description' enough?",
+      "pattern": "^\\*|([\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?\\.))*[\\p{L}_$][\\p{L}\\p{N}_$]*(([\\[](\\d+(,\\d+)*|\\d+/\\d+|\\d+-\\d+|\\*)[]])?)+$"
     },
     "propertyNameWithAggregateFunctionPattern": {
       "$comment": "Property name with terminal aggregate function",
@@ -57,7 +61,7 @@
     },
     "propertyRulesImmutable": {
       "type": "object",
-      "propertyNames": { "$ref": "#/$defs/propertyNameWithoutAggregateFunctionPattern" },
+      "propertyNames": { "$ref": "#/$defs/propertyNameOrPlaceholderWithoutAggregateFunctionPattern" },
       "additionalProperties": {
         "type": "array",
         "items": { "$ref": "#/$defs/conditionsImmutable" }

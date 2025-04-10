@@ -10,6 +10,7 @@ import java.nio.file.Paths;
  */
 public class MarkdownTocGen {
     public static void main(String[] args) throws IOException {
+        System.out.println("Replace TOC part in README.md");
         Path mdPath = Paths.get("README.MD");
         BufferedReader mdReader = Files.newBufferedReader(mdPath);
         mdReader.lines()
